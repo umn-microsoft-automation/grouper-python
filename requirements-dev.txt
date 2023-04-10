@@ -1,0 +1,13 @@
+# test execution tool
+pytest
+
+# code coverage for pytest
+pytest-cov
+
+
+# linting tool with toml to read from pyproject.toml
+pylama[toml, pylint]
+pydocstyle<6.2
+
+# mypy and types stubs for included libraries
+mypy
