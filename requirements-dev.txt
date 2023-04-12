@@ -11,3 +11,6 @@ pydocstyle<6.2
 
 # mypy and types stubs for included libraries
 mypy
+
+# files are being formatted (currently manually) with black
+black

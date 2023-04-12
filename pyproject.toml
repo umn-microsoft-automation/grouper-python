@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -13,6 +13,7 @@ packages = ["grouper"]
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
 optional-dependencies.dev = {file = "requirements-dev.txt"}
+optional-dependencies.script = {file = "requirements-script.txt"}
 version = {attr = "grouper.__version__"}
 
 # [tool.pytest.ini_options]
