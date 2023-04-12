@@ -24,9 +24,7 @@ def call_grouper(
             if act_as_subject_id:
                 body[request_type]["actAsSubjectId"] = act_as_subject_id
             else:
-                body[request_type][
-                    "actAsSubjectIdentifier"
-                ] = act_as_subject_identifier
+                body[request_type]["actAsSubjectIdentifier"] = act_as_subject_identifier
         else:
             if act_as_subject_id:
                 body[request_type]["actAsSubjectLookup"] = {

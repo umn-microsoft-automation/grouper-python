@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Any
+
 if TYPE_CHECKING:
     from .group import Group
 import httpx
@@ -10,13 +11,13 @@ from .group import create_group
 class Stem:
     def __init__(self, client: httpx.Client, stem_body: dict[str, str]) -> None:
         self.client = client
-        self.displayExtension = stem_body['displayExtension']
-        self.extension = stem_body['extension']
-        self.displayName = stem_body['displayName']
-        self.name = stem_body['name']
-        self.description = stem_body.get('description', "")
-        self.idIndex = stem_body['idIndex']
-        self.uuid = stem_body['uuid']
+        self.displayExtension = stem_body["displayExtension"]
+        self.extension = stem_body["extension"]
+        self.displayName = stem_body["displayName"]
+        self.name = stem_body["name"]
+        self.description = stem_body.get("description", "")
+        self.idIndex = stem_body["idIndex"]
+        self.uuid = stem_body["uuid"]
         self.id = self.uuid
 
     def create_privilege(
@@ -30,7 +31,7 @@ class Stem:
             privilege_name=privilege_name,
             entity_identifier=entity_identifier,
             allowed="T",
-            client=self.client
+            client=self.client,
         )
 
     def delete_privilege(
@@ -44,20 +45,17 @@ class Stem:
             privilege_name=privilege_name,
             entity_identifier=entity_identifier,
             allowed="F",
-            client=self.client
+            client=self.client,
         )
 
     def create_child_stem(
-        self,
-        extension: str,
-        display_extension: str,
-        description: str = ""
+        self, extension: str, display_extension: str, description: str = ""
     ) -> "Stem":
         return create_stem(
             stem_name=f"{self.name}:{extension}",
             display_extension=display_extension,
             description=description,
-            client=self.client
+            client=self.client,
         )
 
     def create_child_group(
@@ -72,14 +70,11 @@ class Stem:
             display_extension=display_extension,
             description=description,
             detail=detail,
-            client=self.client
+            client=self.client,
         )
 
 
-def get_stem_by_name(
-    stem_name: str,
-    client: httpx.Client
-) -> Stem:
+def get_stem_by_name(stem_name: str, client: httpx.Client) -> Stem:
     body = {
         "WsRestFindStemsLiteRequest": {
             "stemName": stem_name,
@@ -87,15 +82,12 @@ def get_stem_by_name(
             # "includeGroupDetail": "T",
         }
     }
-    r = call_grouper(client, '/stems', body)
-    return Stem(client, r['WsFindStemsResults']['stemResults'][0])
+    r = call_grouper(client, "/stems", body)
+    return Stem(client, r["WsFindStemsResults"]["stemResults"][0])
 
 
 def create_stem(
-    stem_name: str,
-    display_extension: str,
-    description: str,
-    client: httpx.Client
+    stem_name: str, display_extension: str, description: str, client: httpx.Client
 ) -> Stem:
     body = {
         "WsRestStemSaveLiteRequest": {
@@ -104,5 +96,5 @@ def create_stem(
             "displayExtension": display_extension,
         }
     }
-    r = call_grouper(client, f'/stems/{stem_name}', body)
-    return Stem(client, r['WsStemSaveLiteResult']['wsStem'])
+    r = call_grouper(client, f"/stems/{stem_name}", body)
+    return Stem(client, r["WsStemSaveLiteResult"]["wsStem"])

@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Union
+
 if TYPE_CHECKING:
     from .group import Group
 
@@ -26,9 +27,7 @@ class User:
         self.description = attrs["description"]
 
     def get_groups(
-        self,
-        stem: str | None = None,
-        substems: bool = True
+        self, stem: str | None = None, substems: bool = True
     ) -> list["Group"]:
         return get_groups_for_subject(self.id, self.client, stem, substems)
 

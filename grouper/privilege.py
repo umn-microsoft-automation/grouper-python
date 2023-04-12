@@ -9,7 +9,6 @@ def assign_privilege(
     entity_identifier: str,
     allowed: str,
     client: httpx.Client,
-
 ) -> None:
     body = {
         "WsRestAssignGrouperPrivilegesLiteRequest": {
@@ -26,4 +25,4 @@ def assign_privilege(
         body["WsRestAssignGrouperPrivilegesLiteRequest"]["privilegeType"] = "access"
     else:  # pragma: no cover
         pass
-    call_grouper(client, '/grouperPrivileges', body)
+    call_grouper(client, "/grouperPrivileges", body)

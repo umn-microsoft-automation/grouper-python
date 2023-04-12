@@ -123,7 +123,7 @@ class Group:
             group_name=self.name,
             client=self.client,
             subject_identifiers=subject_identifiers,
-            subject_ids=subject_ids
+            subject_ids=subject_ids,
         )
 
 
@@ -177,7 +177,6 @@ def create_group(
             "wsGroupToSaves": [group_to_save],
             "includeGroupDetail": "T",
         }
-
     }
     r = call_grouper(client, "/groups", body)
     return Group(client, r["WsGroupSaveResults"]["results"][0]["wsGroup"])
