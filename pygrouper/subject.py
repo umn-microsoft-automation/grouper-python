@@ -36,9 +36,20 @@ class Subject(BaseModel):
         return self.id == other.id
 
     def get_groups(
-        self, stem: str | None = None, substems: bool = True
+        self,
+        stem: str | None = None,
+        substems: bool = True,
+        act_as_subject_id: str | None = None,
+        act_as_subject_identifier: str | None = None,
     ) -> list["Group"]:
-        return get_groups_for_subject(self.id, self.client, stem, substems)
+        return get_groups_for_subject(
+            self.id,
+            self.client,
+            stem,
+            substems,
+            act_as_subject_id=act_as_subject_id,
+            act_as_subject_identifier=act_as_subject_identifier
+        )
 
 
 def get_groups_for_subject(
@@ -46,6 +57,8 @@ def get_groups_for_subject(
     client: httpx.Client,
     stem: str | None = None,
     substems: bool = True,
+    act_as_subject_id: str | None = None,
+    act_as_subject_identifier: str | None = None,
 ) -> list["Group"]:
     from .group import Group
 
@@ -66,11 +79,21 @@ def get_groups_for_subject(
             body["WsRestGetMembershipsRequest"]["stemScope"] = "ALL_IN_SUBTREE"
         else:
             body["WsRestGetMembershipsRequest"]["stemScope"] = "ONE_LEVEL"
-    r = call_grouper(client, "/memberships", body)
-    return [
-        Group.from_results(client, grp)
-        for grp in r["WsGetMembershipsResults"]["wsGroups"]
-    ]
+    r = call_grouper(
+        client,
+        "/memberships",
+        body,
+        act_as_subject_id=act_as_subject_id,
+        act_as_subject_identifier=act_as_subject_identifier,
+    )
+    print(r)
+    if "wsGroups" in r["WsGetMembershipsResults"]:
+        return [
+            Group.from_results(client, grp)
+            for grp in r["WsGetMembershipsResults"]["wsGroups"]
+        ]
+    else:
+        return []
 
 
 def get_subject_by_identifier(
