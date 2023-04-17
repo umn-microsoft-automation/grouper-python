@@ -51,6 +51,28 @@ class Subject(BaseModel):
             act_as_subject_identifier=act_as_subject_identifier
         )
 
+    def is_member(
+        self,
+        group_name: str,
+        member_filter: str = "all",
+        act_as_subject_id: str | None = None,
+        act_as_subject_identifier: str | None = None,
+    ) -> bool:
+        from .group import has_members, HasMember
+
+        result = has_members(
+            group_name=group_name,
+            client=self.client,
+            subject_ids=[self.id],
+            member_filter=member_filter,
+            act_as_subject_id=act_as_subject_id,
+            act_as_subject_identifier=act_as_subject_identifier,
+        )
+        if result[self.id] == HasMember.IS_MEMBER:
+            return True
+        elif result[self.id] == HasMember.IS_NOT_MEMBER:
+            return False
+
 
 def get_groups_for_subject(
     subject_id: str,
@@ -86,7 +108,6 @@ def get_groups_for_subject(
         act_as_subject_id=act_as_subject_id,
         act_as_subject_identifier=act_as_subject_identifier,
     )
-    print(r)
     if "wsGroups" in r["WsGetMembershipsResults"]:
         return [
             Group.from_results(client, grp)

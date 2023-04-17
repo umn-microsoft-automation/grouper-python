@@ -4,6 +4,7 @@ from typing import Any
 #     from .subject import Subject
 
 import httpx
+from enum import Enum
 
 # from pydantic import BaseModel
 from .util import call_grouper
@@ -94,7 +95,7 @@ class Group(Subject):
             attributes=attributes,
             member_filter=member_filter,
             act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier
+            act_as_subject_identifier=act_as_subject_identifier,
         )
         return members[self]
         # from .user import User
@@ -197,6 +198,24 @@ class Group(Subject):
             client=self.client,
             subject_identifiers=subject_identifiers,
             subject_ids=subject_ids,
+        )
+
+    def has_members(
+        self,
+        subject_identifiers: list[str] = [],
+        subject_ids: list[str] = [],
+        member_filter: str = "all",
+        act_as_subject_id: str | None = None,
+        act_as_subject_identifier: str | None = None,
+    ) -> dict[str, "HasMember"]:
+        return has_members(
+            group_name=self.name,
+            client=self.client,
+            subject_identifiers=subject_identifiers,
+            subject_ids=subject_ids,
+            member_filter=member_filter,
+            act_as_subject_id=act_as_subject_id,
+            act_as_subject_identifier=act_as_subject_identifier,
         )
 
 
@@ -367,6 +386,7 @@ def get_members_for_groups(
     act_as_subject_identifier: str | None = None,
 ) -> dict[Group, list[Subject]]:
     from .user import User
+
     group_lookup = [{"groupName": group.name} for group in groups]
     body = {
         "WsRestGetMembersRequest": {
@@ -406,4 +426,79 @@ def get_members_for_groups(
             r_dict[key] = members
         else:
             pass
+    return r_dict
+
+
+class HasMember(Enum):
+    IS_MEMBER = 1
+    IS_NOT_MEMBER = 2
+    SUBJECT_NOT_FOUND = 3
+
+
+def has_members(
+    group_name: str,
+    client: httpx.Client,
+    subject_identifiers: list[str] = [],
+    subject_ids: list[str] = [],
+    member_filter: str = "all",
+    act_as_subject_id: str | None = None,
+    act_as_subject_identifier: str | None = None,
+) -> dict[str, HasMember]:
+    if (subject_identifiers and subject_ids) or (
+        not subject_identifiers and not subject_ids
+    ):
+        raise ValueError(
+            "Exactly one of subject_identifiers or subject_ids must be specified"
+        )
+    subject_lookups = []
+    if subject_identifiers:
+        subject_lookups = [
+            {"subjectIdentifier": ident} for ident in subject_identifiers
+        ]
+        ident_key = "identifierLookup"
+    elif subject_ids:
+        subject_lookups = [{"subjectId": ident} for ident in subject_ids]
+        ident_key = "id"
+    body = {
+        "WsRestHasMemberRequest": {
+            "subjectLookups": subject_lookups,
+            "memberFilter": member_filter,
+        }
+    }
+    try:
+        r = call_grouper(
+            client,
+            f"/groups/{group_name}/members",
+            body,
+            act_as_subject_id=act_as_subject_id,
+            act_as_subject_identifier=act_as_subject_identifier,
+        )
+    except GrouperSuccessException as err:
+        r = err.grouper_result
+        if (
+            r["WsHasMemberResults"]["resultMetadata"]["resultCode"]
+            == "GROUP_NOT_FOUND"
+        ):
+            raise GrouperGroupNotFoundException(group_name)
+        else:  # pragma: no cover
+            raise
+    results = r["WsHasMemberResults"]["results"]
+    r_dict = {}
+    for result in results:
+        meta_keys = result["resultMetadata"].keys()
+        if "resultCode2" in meta_keys:
+            if result["resultMetadata"]["resultCode2"] == "SUBJECT_NOT_FOUND":
+                is_member = HasMember.SUBJECT_NOT_FOUND
+                ident = result["wsSubject"]["id"]
+            else:
+                raise GrouperSuccessException(r)
+        if result["resultMetadata"]["resultCode"] == "IS_NOT_MEMBER":
+            is_member = HasMember.IS_NOT_MEMBER
+            ident = result["wsSubject"][ident_key]
+        elif result["resultMetadata"]["resultCode"] == "IS_MEMBER":
+            is_member = HasMember.IS_MEMBER
+            ident = result["wsSubject"][ident_key]
+        else:
+            raise GrouperSuccessException(r)
+        r_dict[ident] = is_member
     return r_dict
