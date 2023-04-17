@@ -1,6 +1,7 @@
 import httpx
 from typing import Any
 from copy import deepcopy
+from .exceptions import GrouperAuthException, GrouperSuccessException
 
 
 def call_grouper(
@@ -36,5 +37,11 @@ def call_grouper(
                 }
 
     result = client.request(method=method, url=path, json=body)
+    print(result.status_code)
+    if result.status_code == 401:
+        raise GrouperAuthException(result.content)
     data: dict[str, Any] = result.json()
+    result_type = list(data.keys())[0]
+    if data[result_type]["resultMetadata"]["success"] != "T":
+        raise GrouperSuccessException(data)
     return data

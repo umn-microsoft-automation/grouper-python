@@ -3,18 +3,23 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "grouper"
+name = "pygrouper"
 requires-python = ">=3.11"
 dynamic = ["dependencies", "optional-dependencies", "version"]
 
 [tool.setuptools]
-packages = ["grouper"]
+packages = ["pygrouper"]
+
+[tool.setuptools.package-data]
+"pygrouper" = [
+    "py.typed"
+]
 
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
 optional-dependencies.dev = {file = "requirements-dev.txt"}
 optional-dependencies.script = {file = "requirements-script.txt"}
-version = {attr = "grouper.__version__"}
+version = {attr = "pygrouper.__version__"}
 
 # [tool.pytest.ini_options]
 # env = [
