@@ -1,7 +1,8 @@
+from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .client import Client
+    from .objects.client import Client
 from .util import call_grouper
 
 
@@ -11,7 +12,7 @@ def assign_privilege(
     privilege_name: str,
     entity_identifier: str,
     allowed: str,
-    client: "Client",
+    client: Client,
     act_as_subject_id: str | None = None,
     act_as_subject_identifier: str | None = None,
 ) -> None:

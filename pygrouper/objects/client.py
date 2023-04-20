@@ -5,15 +5,19 @@ if TYPE_CHECKING:
     from .group import Group
     from .stem import Stem
     from .subject import Subject
+    from types import TracebackType
 import httpx
-from .util import (
-    call_grouper,
-    get_stem_by_name,
-    get_subject_by_identifier,
-    get_group_by_name,
-    find_group_by_name,
-)
-from types import TracebackType
+from ..util import call_grouper
+# from ..util import (
+#     call_grouper,
+#     # get_stem_by_name,
+#     # get_subject_by_identifier,
+#     # get_group_by_name,
+#     # find_group_by_name,
+# )
+from ..group import get_group_by_name, find_group_by_name
+from ..stem import get_stem_by_name
+from ..subject import get_subject_by_identifier
 
 
 class Client:

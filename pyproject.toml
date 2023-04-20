@@ -8,12 +8,11 @@ requires-python = ">=3.11"
 dynamic = ["dependencies", "optional-dependencies", "version"]
 
 [tool.setuptools]
-packages = ["pygrouper"]
+packages = ["pygrouper", "pygrouper.objects"]
 
-[tool.setuptools.package-data]
-"pygrouper" = [
-    "py.typed"
-]
+# [tool.setuptools.package-data]
+# "pygrouper" = ["py.typed"]
+# "pygrouper.objects" = ["py.typed"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
@@ -86,4 +85,4 @@ no_implicit_reexport = true
 strict_equality = true
 strict_concatenate = true
 # --strict end
-# plugins = ["pydantic.mypy"]
+plugins = ["pydantic.mypy"]
