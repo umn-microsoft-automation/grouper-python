@@ -1,19 +1,22 @@
-from typing import Any
+from __future__ import annotations
+from typing import Any, TYPE_CHECKING
 
-# if TYPE_CHECKING:
+if TYPE_CHECKING:
+    from .membership import Membership
+#     from .client import Client
 #     from .subject import Subject
 
-import httpx
 from enum import Enum
 
-# from pydantic import BaseModel
-from .util import call_grouper
+from pydantic import BaseModel
+from .client import Client
+from .util import call_grouper, get_group_by_name
 from .subject import Subject
 from .privilege import assign_privilege
+from .membership import get_memberships_for_groups
 from .exceptions import (
     GrouperGroupNotFoundException,
     GrouperSuccessException,
-    GrouperStemNotFoundException,
     GrouperPermissionDenied,
 )
 
@@ -31,8 +34,12 @@ class Group(Subject):
 
     @classmethod
     def from_results(
-        cls: type["Group"], client: httpx.Client, group_body: dict[str, Any]
-    ) -> "Group":
+        cls: type[Group],
+        client: Client,
+        group_body: dict[str, Any],
+        subject_attr_names: list[str] = [],
+        universal_id_attr: str = "description",
+    ) -> Group:
         return cls(
             id=group_body["uuid"],
             description=group_body.get("description", ""),
@@ -86,66 +93,46 @@ class Group(Subject):
         self,
         attributes: list[str] = [],
         member_filter: str = "all",
+        resolve_groups: bool = True,
         act_as_subject_id: str | None = None,
         act_as_subject_identifier: str | None = None,
-    ) -> list["Subject"]:
+    ) -> list[Subject]:
         members = get_members_for_groups(
-            groups=[self],
+            group_names=[self.name],
             client=self.client,
             attributes=attributes,
             member_filter=member_filter,
+            resolve_groups=resolve_groups,
             act_as_subject_id=act_as_subject_id,
             act_as_subject_identifier=act_as_subject_identifier,
         )
         return members[self]
-        # from .user import User
 
-        # body = {
-        #     "WsRestGetMembersRequest": {
-        #         "subjectAttributeNames": attributes,
-        #         "wsGroupLookups": [{"groupName": self.name}],
-        #         "memberFilter": member_filter,
-        #         "includeSubjectDetail": "T",
-        #     }
-        # }
-        # r = call_grouper(
-        #     self.client,
-        #     "/groups",
-        #     body,
-        #     act_as_subject_id=act_as_subject_id,
-        #     act_as_subject_identifier=act_as_subject_identifier,
-        # )
-        # result = r["WsGetMembersResults"]["results"][0]
-        # r_attributes = r["WsGetMembersResults"]["subjectAttributeNames"]
-        # members: list["Subject"] = []
-        # if result["resultMetadata"]["success"] == "T":
-        #     if "wsSubjects" in result:
-        #         for subject in result["wsSubjects"]:
-        #             if subject["sourceId"] == "g:gsa":
-        #                 group = get_group_by_name(subject["name"], self.client)
-        #                 members.append(group)
-        #             else:
-        #                 user = User.from_results(
-        #                     client=self.client,
-        #                     user_body=subject,
-        #                     subject_attr_names=r_attributes,
-        #                 )
-        #                 members.append(user)
-        #     else:
-        #         pass
-        # else:  # pragma: no cover
-        #     raise Exception
-        # return members
-
-    # def get_groups(
-    #     self, stem: str | None = None, substems: bool = True
-    # ) -> list["Group"]:
-    #     return get_groups_for_subject(self.id, self.client, stem, substems)
+    def get_memberships(
+        self,
+        attributes: list[str] = [],
+        member_filter: str = "all",
+        resolve_groups: bool = True,
+        act_as_subject_id: str | None = None,
+        act_as_subject_identifier: str | None = None,
+    ) -> list[Membership]:
+        memberships = get_memberships_for_groups(
+            group_names=[self.name],
+            client=self.client,
+            attributes=attributes,
+            member_filter=member_filter,
+            resolve_groups=resolve_groups,
+            act_as_subject_id=act_as_subject_id,
+            act_as_subject_identifier=act_as_subject_identifier,
+        )
+        return memberships[self]
 
     def create_privilege(
         self,
         entity_identifier: str,
         privilege_name: str,
+        act_as_subject_id: str | None = None,
+        act_as_subject_identifier: str | None = None,
     ) -> None:
         assign_privilege(
             target=self.name,
@@ -154,12 +141,16 @@ class Group(Subject):
             entity_identifier=entity_identifier,
             allowed="T",
             client=self.client,
+            act_as_subject_id=act_as_subject_id,
+            act_as_subject_identifier=act_as_subject_identifier,
         )
 
     def delete_privilege(
         self,
         entity_identifier: str,
         privilege_name: str,
+        act_as_subject_id: str | None = None,
+        act_as_subject_identifier: str | None = None,
     ) -> None:
         assign_privilege(
             target=self.name,
@@ -168,6 +159,8 @@ class Group(Subject):
             entity_identifier=entity_identifier,
             allowed="F",
             client=self.client,
+            act_as_subject_id=act_as_subject_id,
+            act_as_subject_identifier=act_as_subject_identifier,
         )
 
     def add_members(
@@ -192,12 +185,16 @@ class Group(Subject):
         self,
         subject_identifiers: list[str] = [],
         subject_ids: list[str] = [],
+        act_as_subject_id: str | None = None,
+        act_as_subject_identifier: str | None = None,
     ) -> None:
         delete_members_from_group(
             group_name=self.name,
             client=self.client,
             subject_identifiers=subject_identifiers,
             subject_ids=subject_ids,
+            act_as_subject_id=act_as_subject_id,
+            act_as_subject_identifier=act_as_subject_identifier,
         )
 
     def has_members(
@@ -207,7 +204,7 @@ class Group(Subject):
         member_filter: str = "all",
         act_as_subject_id: str | None = None,
         act_as_subject_identifier: str | None = None,
-    ) -> dict[str, "HasMember"]:
+    ) -> dict[str, HasMember]:
         return has_members(
             group_name=self.name,
             client=self.client,
@@ -218,104 +215,158 @@ class Group(Subject):
             act_as_subject_identifier=act_as_subject_identifier,
         )
 
+    def delete(
+        self,
+        act_as_subject_id: str | None = None,
+        act_as_subject_identifier: str | None = None,
+    ) -> None:
+        delete_groups(
+            group_names=[self.name],
+            client=self.client,
+            act_as_subject_id=act_as_subject_id,
+            act_as_subject_identifier=act_as_subject_identifier,
+        )
 
-def get_group_by_name(
-    group_name: str,
-    client: httpx.Client,
+
+class CreateGroup(BaseModel):
+    name: str
+    display_extension: str
+    description: str
+    detail: dict[str, Any] | None = None
+
+
+# def get_group_by_name(
+#     group_name: str,
+#     client: "Client",
+#     act_as_subject_id: str | None = None,
+#     act_as_subject_identifier: str | None = None,
+# ) -> Group:
+#     body = {
+#         "WsRestFindGroupsLiteRequest": {
+#             "groupName": group_name,
+#             "queryFilterType": "FIND_BY_GROUP_NAME_EXACT",
+#             "includeGroupDetail": "T",
+#         }
+#     }
+#     r = call_grouper(
+#         client.httpx_client,
+#         "/groups",
+#         body,
+#         act_as_subject_id=act_as_subject_id,
+#         act_as_subject_identifier=act_as_subject_identifier,
+#     )
+#     if "groupResults" not in r["WsFindGroupsResults"]:
+#         raise GrouperGroupNotFoundException(group_name)
+#     return Group.from_results(client, r["WsFindGroupsResults"]["groupResults"][0])
+
+
+# def find_group_by_name(
+#     group_name: str,
+#     client: "Client",
+#     stem: str | None = None,
+#     act_as_subject_id: str | None = None,
+#     act_as_subject_identifier: str | None = None,
+# ) -> list[Group]:
+#     body = {
+#         "WsRestFindGroupsLiteRequest": {
+#             "groupName": group_name,
+#             "queryFilterType": "FIND_BY_GROUP_NAME_APPROXIMATE",
+#             "includeGroupDetail": "T",
+#         }
+#     }
+#     if stem:
+#         body["WsRestFindGroupsLiteRequest"]["stemName"] = stem
+#     try:
+#         r = call_grouper(
+#             client.httpx_client,
+#             "/groups",
+#             body,
+#             act_as_subject_id=act_as_subject_id,
+#             act_as_subject_identifier=act_as_subject_identifier,
+#         )
+#     except GrouperSuccessException as err:
+#         r = err.grouper_result
+#         r_metadata = r["WsFindGroupsResults"]["resultMetadata"]
+#         if r_metadata["resultCode"] == "INVALID_QUERY" and r_metadata[
+#             "resultMessage"
+#         ].startswith("Cant find stem"):
+#             raise GrouperStemNotFoundException(str(stem))
+#         else:  # pragma: no cover
+#             raise
+#     if "groupResults" in r["WsFindGroupsResults"]:
+#         return [
+#             Group.from_results(client, grp)
+#             for grp in r["WsFindGroupsResults"]["groupResults"]
+#         ]
+#     else:
+#         return []
+
+
+def create_groups(
+    groups: list[CreateGroup],
+    # display_extension: str,
+    # description: str,
+    client: Client,
+    # detail: dict[str, Any] | None = None,
     act_as_subject_id: str | None = None,
     act_as_subject_identifier: str | None = None,
-) -> Group:
+) -> list[Group]:
+    groups_to_save = []
+    for group in groups:
+        group_to_save: dict[str, Any] = {
+            "wsGroup": {
+                "description": group.description,
+                "displayExtension": group.display_extension,
+                "name": group.name,
+            },
+            "wsGroupLookup": {"groupName": group.name},
+        }
+        if group.detail:
+            group_to_save["wsGroup"]["detail"] = group.detail
+        groups_to_save.append(group_to_save)
+    # groups_to_save = [
+    #     {
+    #         "wsGroup": {
+    #             "description": group.description,
+    #             "displayExtension": group.display_extension,
+    #             "name": group.name,
+    #         },
+    #         "wsGroupLookup": {"groupName": group.name},
+    #     }
+    #     for group in groups
+    # ]
+    # group_to_save: dict[str, Any] = {
+    #     "wsGroup": {
+    #         "description": description,
+    #         "displayExtension": display_extension,
+    #         "name": group_name,
+    #     },
+    #     "wsGroupLookup": {"groupName": group_name},
+    # }
+    # if detail:  # pragma: no cover
+    #     group_to_save["wsGroup"]["detail"] = detail
     body = {
-        "WsRestFindGroupsLiteRequest": {
-            "groupName": group_name,
-            "queryFilterType": "FIND_BY_GROUP_NAME_EXACT",
+        "WsRestGroupSaveRequest": {
+            "wsGroupToSaves": group_to_save,
             "includeGroupDetail": "T",
         }
     }
     r = call_grouper(
-        client,
+        client.httpx_client,
         "/groups",
         body,
         act_as_subject_id=act_as_subject_id,
         act_as_subject_identifier=act_as_subject_identifier,
     )
-    if "groupResults" not in r["WsFindGroupsResults"]:
-        raise GrouperGroupNotFoundException(group_name)
-    return Group.from_results(client, r["WsFindGroupsResults"]["groupResults"][0])
-
-
-def find_group_by_name(
-    group_name: str,
-    client: httpx.Client,
-    stem: str | None = None,
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
-) -> list[Group]:
-    body = {
-        "WsRestFindGroupsLiteRequest": {
-            "groupName": group_name,
-            "queryFilterType": "FIND_BY_GROUP_NAME_APPROXIMATE",
-            "includeGroupDetail": "T",
-        }
-    }
-    if stem:
-        body["WsRestFindGroupsLiteRequest"]["stemName"] = stem
-    try:
-        r = call_grouper(
-            client,
-            "/groups",
-            body,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
-        )
-    except GrouperSuccessException as err:
-        r = err.grouper_result
-        r_metadata = r["WsFindGroupsResults"]["resultMetadata"]
-        if r_metadata["resultCode"] == "INVALID_QUERY" and r_metadata[
-            "resultMessage"
-        ].startswith("Cant find stem"):
-            raise GrouperStemNotFoundException(str(stem))
-        else:  # pragma: no cover
-            raise
-    if "groupResults" in r["WsFindGroupsResults"]:
-        return [
-            Group.from_results(client, grp)
-            for grp in r["WsFindGroupsResults"]["groupResults"]
-        ]
-    else:
-        return []
-
-
-def create_group(
-    group_name: str,
-    display_extension: str,
-    description: str,
-    client: httpx.Client,
-    detail: dict[str, Any] | None = None,
-) -> Group:
-    group_to_save: dict[str, Any] = {
-        "wsGroup": {
-            "description": description,
-            "displayExtension": display_extension,
-            "name": group_name,
-        },
-        "wsGroupLookup": {"groupName": group_name},
-    }
-    if detail:  # pragma: no cover
-        group_to_save["wsGroup"]["detail"] = detail
-    body = {
-        "WsRestGroupSaveRequest": {
-            "wsGroupToSaves": [group_to_save],
-            "includeGroupDetail": "T",
-        }
-    }
-    r = call_grouper(client, "/groups", body)
-    return Group.from_results(client, r["WsGroupSaveResults"]["results"][0]["wsGroup"])
+    return [
+        Group.from_results(client, result["wsGroup"])
+        for result in r["WsGroupSaveResults"]["results"]
+    ]
 
 
 def add_members_to_group(
     group_name: str,
-    client: httpx.Client,
+    client: Client,
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
     replace_all_existing: str = "F",
@@ -335,13 +386,12 @@ def add_members_to_group(
     }
     try:
         r = call_grouper(
-            client,
+            client.httpx_client,
             "/groups",
             body,
             act_as_subject_id=act_as_subject_id,
             act_as_subject_identifier=act_as_subject_identifier,
         )
-        return Group.from_results(client, r["WsAddMemberResults"]["wsGroupAssigned"])
     except GrouperSuccessException as err:
         r = err.grouper_result
         if r["WsAddMemberResults"]["resultMetadata"]["resultCode"] == "GROUP_NOT_FOUND":
@@ -355,39 +405,69 @@ def add_members_to_group(
             raise GrouperPermissionDenied()
         else:  # pragma: no cover
             raise
+    return Group.from_results(client, r["WsAddMemberResults"]["wsGroupAssigned"])
 
 
 def delete_members_from_group(
     group_name: str,
-    client: httpx.Client,
+    client: Client,
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
-) -> None:
+    act_as_subject_id: str | None = None,
+    act_as_subject_identifier: str | None = None,
+) -> Group:
     identifiers_to_delete = [
         {"subjectIdentifier": ident} for ident in subject_identifiers
     ]
     ids_to_delete = [{"subjectId": sid} for sid in subject_ids]
     subjects_to_delete = identifiers_to_delete + ids_to_delete
     body = {
-        "WsRestAddMemberRequest": {
+        "WsRestDeleteMemberRequest": {
             "subjectLookups": subjects_to_delete,
             "wsGroupLookup": {"groupName": group_name},
+            "includeGroupDetail": "T",
         }
     }
-    call_grouper(client, "/groups", body)
+    print(body)
+    try:
+        r = call_grouper(
+            client.httpx_client,
+            "/groups",
+            body,
+            act_as_subject_id=act_as_subject_id,
+            act_as_subject_identifier=act_as_subject_identifier,
+        )
+    except GrouperSuccessException as err:
+        r = err.grouper_result
+        if (
+            r["WsDeleteMemberResults"]["resultMetadata"]["resultCode"]
+            == "GROUP_NOT_FOUND"
+        ):
+            raise GrouperGroupNotFoundException(group_name)
+        elif (
+            r["WsDeleteMemberResults"]["resultMetadata"]["resultCode"]
+            == "PROBLEM_DELETING_MEMBERS"
+            and r["WsDeleteMemberResults"]["results"][0]["resultMetadata"]["resultCode"]
+            == "INSUFFICIENT_PRIVILEGES"
+        ):
+            raise GrouperPermissionDenied()
+        else:  # pragma: no cover
+            raise
+    return Group.from_results(client, r["WsDeleteMemberResults"]["wsGroup"])
 
 
 def get_members_for_groups(
-    groups: list[Group],
-    client: httpx.Client,
+    group_names: list[str],
+    client: Client,
     attributes: list[str] = [],
     member_filter: str = "all",
+    resolve_groups: bool = True,
     act_as_subject_id: str | None = None,
     act_as_subject_identifier: str | None = None,
 ) -> dict[Group, list[Subject]]:
     from .user import User
 
-    group_lookup = [{"groupName": group.name} for group in groups]
+    group_lookup = [{"groupName": group} for group in group_names]
     body = {
         "WsRestGetMembersRequest": {
             "subjectAttributeNames": attributes,
@@ -397,7 +477,7 @@ def get_members_for_groups(
         }
     }
     r = call_grouper(
-        client,
+        client.httpx_client,
         "/groups",
         body,
         act_as_subject_id=act_as_subject_id,
@@ -412,8 +492,24 @@ def get_members_for_groups(
             if "wsSubjects" in result:
                 for subject in result["wsSubjects"]:
                     if subject["sourceId"] == "g:gsa":
-                        group = get_group_by_name(subject["name"], client)
-                        members.append(group)
+                        if resolve_groups:
+                            group = get_group_by_name(subject["name"], client)
+                            members.append(group)
+                        else:
+                            # subject = Subject(
+                            #     id=subject["id"],
+                            #     description=subject["attributeValues"][
+                            #         description_index
+                            #     ],
+                            #     universal_id=subject["name"],
+                            #     client=client,
+                            # )
+                            subject = Subject.from_results(
+                                client=client,
+                                subject_body=subject,
+                                subject_attr_names=r_attributes,
+                            )
+                            members.append(subject)
                     else:
                         user = User.from_results(
                             client=client,
@@ -437,7 +533,7 @@ class HasMember(Enum):
 
 def has_members(
     group_name: str,
-    client: httpx.Client,
+    client: Client,
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
     member_filter: str = "all",
@@ -467,7 +563,7 @@ def has_members(
     }
     try:
         r = call_grouper(
-            client,
+            client.httpx_client,
             f"/groups/{group_name}/members",
             body,
             act_as_subject_id=act_as_subject_id,
@@ -475,10 +571,7 @@ def has_members(
         )
     except GrouperSuccessException as err:
         r = err.grouper_result
-        if (
-            r["WsHasMemberResults"]["resultMetadata"]["resultCode"]
-            == "GROUP_NOT_FOUND"
-        ):
+        if r["WsHasMemberResults"]["resultMetadata"]["resultCode"] == "GROUP_NOT_FOUND":
             raise GrouperGroupNotFoundException(group_name)
         else:  # pragma: no cover
             raise
@@ -502,3 +595,61 @@ def has_members(
             raise GrouperSuccessException(r)
         r_dict[ident] = is_member
     return r_dict
+
+
+def delete_groups(
+    group_names: list[str],
+    client: Client,
+    act_as_subject_id: str | None = None,
+    act_as_subject_identifier: str | None = None,
+) -> None:
+    group_lookup = [{"groupName": group} for group in group_names]
+    body = {
+        "WsRestGroupDeleteRequest": {
+            "wsGroupLookups": group_lookup,
+        }
+    }
+    r = call_grouper(
+        client.httpx_client,
+        "/groups",
+        body,
+        act_as_subject_id=act_as_subject_id,
+        act_as_subject_identifier=act_as_subject_identifier,
+    )
+    for result in r["WsGroupDeleteResults"]["results"]:
+        if result["resultMetadata"]["resultCode"] != "SUCCESS":
+            raise GrouperSuccessException(r)
+
+
+def get_groups_by_parent(
+    parent_name: str,
+    client: Client,
+    recursive: bool = False,
+    act_as_subject_id: str | None = None,
+    act_as_subject_identifier: str | None = None,
+) -> list[Group]:
+    body = {
+        "WsRestFindGroupsLiteRequest": {
+            "stemName": parent_name,
+            "queryFilterType": "FIND_BY_STEM_NAME",
+        }
+    }
+    if recursive:
+        body["WsRestFindGroupsLiteRequest"]["parentStemNameScope"] = "ALL_IN_SUBTREE"
+    else:
+        body["WsRestFindGroupsLiteRequest"]["parentStemNameScope"] = "ONE_LEVEL"
+    r = call_grouper(
+        client.httpx_client,
+        "/groups",
+        body,
+        act_as_subject_id=act_as_subject_id,
+        act_as_subject_identifier=act_as_subject_identifier,
+    )
+    print(r)
+    if "groupResults" in r["WsFindGroupsResults"]:
+        return [
+            Group.from_results(client, grp)
+            for grp in r["WsFindGroupsResults"]["groupResults"]
+        ]
+    else:
+        return []

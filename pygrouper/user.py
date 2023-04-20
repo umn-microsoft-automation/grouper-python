@@ -1,12 +1,5 @@
 from typing import Any
-
-# if TYPE_CHECKING:
-#     from .group import Group
-
-import httpx
-
-# from .group import get_group_by_name
-# from .util import call_grouper
+from .client import Client
 from .subject import Subject
 
 
@@ -18,10 +11,10 @@ class User(Subject):
     @classmethod
     def from_results(
         cls: type["User"],
-        client: httpx.Client,
+        client: Client,
         user_body: dict[str, Any],
         subject_attr_names: list[str],
-        universal_id_attr: str = "description"
+        universal_id_attr: str = "description",
     ) -> "User":
         attrs = {
             subject_attr_names[i]: user_body["attributeValues"][i]
