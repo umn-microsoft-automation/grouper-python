@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .group import Group
     # from .client import Client
-    from .membership import HasMember
+    # from .membership import HasMember
 
 from .client import Client
 from pydantic import BaseModel
@@ -37,16 +37,20 @@ class Subject(BaseModel):
         client: Client,
         subject_body: dict[str, Any],
         subject_attr_names: list[str],
-        universal_id_attr: str = "description",
+        # universal_id_attr: str = client.universal_id_attr,
     ) -> Subject:
         attrs = {
             subject_attr_names[i]: subject_body["attributeValues"][i]
             for i in range(len(subject_attr_names))
         }
+        if subject_body["sourceId"] == "g:gsa":
+            universal_id_attr = "name"
+        else:
+            universal_id_attr = client.universal_id_attr
         return cls(
             id=subject_body["id"],
             description=subject_body.get("description", ""),
-            universal_id=attrs.get(universal_id_attr, ""),
+            universal_id=attrs.get(universal_id_attr),
             client=client,
         )
 
@@ -62,24 +66,21 @@ class Subject(BaseModel):
         self,
         stem: str | None = None,
         substems: bool = True,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> list[Group]:
         return get_groups_for_subject(
             self.id,
             self.client,
             stem,
             substems,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
 
     def is_member(
         self,
         group_name: str,
         member_filter: str = "all",
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> bool:
         from .membership import HasMember
 
@@ -88,8 +89,7 @@ class Subject(BaseModel):
             client=self.client,
             subject_ids=[self.id],
             member_filter=member_filter,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
         if result[self.id] == HasMember.IS_MEMBER:
             return True

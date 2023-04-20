@@ -43,12 +43,11 @@ def get_memberships_for_groups(
     attributes: list[str] = [],
     member_filter: str = "all",
     resolve_groups: bool = True,
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> dict[Group, list[Membership]]:
     from .objects.membership import Membership, MembershipType, MemberType
     from .objects.group import Group
-    from .objects.user import User
+    from .objects.person import Person
     from .objects.subject import Subject
 
     attribute_set = set(attributes + [client.universal_id_attr, "name"])
@@ -67,8 +66,7 @@ def get_memberships_for_groups(
         r = client._call_grouper(
             "/memberships",
             body,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
         # r = call_grouper(
         #     client,
@@ -116,15 +114,14 @@ def get_memberships_for_groups(
                 )
             else:
                 subject = Subject.from_results(
-                    client, subjects[ws_membership["subjectId"]], r_attributes, "name"
+                    client, subjects[ws_membership["subjectId"]], r_attributes
                 )
         else:
-            member_type = MemberType.USER
-            subject = User.from_results(
+            member_type = MemberType.PERSON
+            subject = Person.from_results(
                 client,
                 subjects[ws_membership["subjectId"]],
                 r_attributes,
-                client.universal_id_attr,
             )
 
         if ws_membership["membershipType"] == "immediate":
@@ -148,8 +145,7 @@ def has_members(
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
     member_filter: str = "all",
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> dict[str, HasMember]:
     from .objects.membership import HasMember
 
@@ -178,8 +174,7 @@ def has_members(
         r = client._call_grouper(
             f"/groups/{group_name}/members",
             body,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
     except GrouperSuccessException as err:
         r = err.grouper_result
@@ -215,8 +210,7 @@ def add_members_to_group(
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
     replace_all_existing: str = "F",
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> Group:
     from .objects.group import Group
 
@@ -235,8 +229,7 @@ def add_members_to_group(
         r = client._call_grouper(
             "/groups",
             body,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
     except GrouperSuccessException as err:
         r = err.grouper_result
@@ -259,8 +252,7 @@ def delete_members_from_group(
     client: Client,
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> Group:
     from .objects.group import Group
 
@@ -281,8 +273,7 @@ def delete_members_from_group(
         r = client._call_grouper(
             "/groups",
             body,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
     except GrouperSuccessException as err:
         r = err.grouper_result
@@ -309,10 +300,9 @@ def get_members_for_groups(
     attributes: list[str] = [],
     member_filter: str = "all",
     resolve_groups: bool = True,
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> dict[Group, list[Subject]]:
-    from .objects.user import User
+    from .objects.person import Person
     from .objects.group import Group
     from .objects.subject import Subject
 
@@ -328,8 +318,7 @@ def get_members_for_groups(
     r = client._call_grouper(
         "/groups",
         body,
-        act_as_subject_id=act_as_subject_id,
-        act_as_subject_identifier=act_as_subject_identifier,
+        act_as_subject=act_as_subject,
     )
     r_dict: dict[Group, list[Subject]] = {}
     r_attributes = r["WsGetMembersResults"]["subjectAttributeNames"]
@@ -359,12 +348,12 @@ def get_members_for_groups(
                             )
                             members.append(subject)
                     else:
-                        user = User.from_results(
+                        person = Person.from_results(
                             client=client,
-                            user_body=subject,
+                            person_body=subject,
                             subject_attr_names=r_attributes,
                         )
-                        members.append(user)
+                        members.append(person)
             else:
                 pass
             r_dict[key] = members

@@ -104,8 +104,7 @@ def get_groups_for_subject(
     client: Client,
     stem: str | None = None,
     substems: bool = True,
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> list[Group]:
     from .objects.group import Group
 
@@ -129,8 +128,7 @@ def get_groups_for_subject(
     r = client._call_grouper(
         "/memberships",
         body,
-        act_as_subject_id=act_as_subject_id,
-        act_as_subject_identifier=act_as_subject_identifier,
+        act_as_subject=act_as_subject,
     )
     if "wsGroups" in r["WsGetMembershipsResults"]:
         return [
@@ -145,23 +143,23 @@ def get_subject_by_identifier(
     subject_identifier: str,
     client: Client,
     resolve_group: bool = True,
-    universal_id_attr: str = "description",
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    attributes: list[str] = [],
+    act_as_subject: Subject | None = None
 ) -> Subject:
-    from .objects.user import User
+    from .objects.person import Person
 
+    attribute_set = set(attributes + [client.universal_id_attr, "name"])
     body = {
-        "WsRestGetSubjectsLiteRequest": {
-            "subjectIdentifier": subject_identifier,
+        "WsRestGetSubjectsRequest": {
+            "wsSubjectLookups": [{"subjectIdentifier": subject_identifier}],
             "includeSubjectDetail": "T",
+            "subjectAttributeNames": [*attribute_set],
         }
     }
     r = client._call_grouper(
         "/subjects",
         body,
-        act_as_subject_id=act_as_subject_id,
-        act_as_subject_identifier=act_as_subject_identifier,
+        act_as_subject=act_as_subject
     )
     subject = r["WsGetSubjectsResults"]["wsSubjects"][0]
     if subject["success"] == "F":
@@ -176,12 +174,10 @@ def get_subject_by_identifier(
                 client=client,
                 subject_body=subject,
                 subject_attr_names=r["WsGetSubjectsResults"]["subjectAttributeNames"],
-                universal_id_attr=universal_id_attr,
             )
     else:
-        return User.from_results(
+        return Person.from_results(
             client=client,
-            user_body=subject,
+            person_body=subject,
             subject_attr_names=r["WsGetSubjectsResults"]["subjectAttributeNames"],
-            universal_id_attr=universal_id_attr,
         )

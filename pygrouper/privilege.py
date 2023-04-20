@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .objects.client import Client
-from .util import call_grouper
+    from .objects.subject import Subject
 
 
 def assign_privilege(
@@ -13,8 +13,7 @@ def assign_privilege(
     entity_identifier: str,
     allowed: str,
     client: Client,
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> None:
     body = {
         "WsRestAssignGrouperPrivilegesLiteRequest": {
@@ -31,10 +30,8 @@ def assign_privilege(
         body["WsRestAssignGrouperPrivilegesLiteRequest"]["privilegeType"] = "access"
     else:  # pragma: no cover
         pass
-    call_grouper(
-        client.httpx_client,
+    client._call_grouper(
         "/grouperPrivileges",
         body,
-        act_as_subject_id=act_as_subject_id,
-        act_as_subject_identifier=act_as_subject_identifier,
+        act_as_subject=act_as_subject,
     )

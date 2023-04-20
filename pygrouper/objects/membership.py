@@ -17,7 +17,7 @@ class MembershipType(StrEnum):
 
 
 class MemberType(StrEnum):
-    USER = auto()
+    PERSON = auto()
     GROUP = auto()
 
 

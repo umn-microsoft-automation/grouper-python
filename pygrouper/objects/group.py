@@ -34,7 +34,6 @@ class Group(Subject):
         client: Client,
         group_body: dict[str, Any],
         subject_attr_names: list[str] = [],
-        universal_id_attr: str = "description",
     ) -> Group:
         return cls(
             id=group_body["uuid"],
@@ -90,8 +89,7 @@ class Group(Subject):
         attributes: list[str] = [],
         member_filter: str = "all",
         resolve_groups: bool = True,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> list[Subject]:
         members = get_members_for_groups(
             group_names=[self.name],
@@ -99,8 +97,7 @@ class Group(Subject):
             attributes=attributes,
             member_filter=member_filter,
             resolve_groups=resolve_groups,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
         return members[self]
 
@@ -109,8 +106,7 @@ class Group(Subject):
         attributes: list[str] = [],
         member_filter: str = "all",
         resolve_groups: bool = True,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> list[Membership]:
         memberships = get_memberships_for_groups(
             group_names=[self.name],
@@ -118,8 +114,7 @@ class Group(Subject):
             attributes=attributes,
             member_filter=member_filter,
             resolve_groups=resolve_groups,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
         return memberships[self]
 
@@ -127,8 +122,7 @@ class Group(Subject):
         self,
         entity_identifier: str,
         privilege_name: str,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> None:
         assign_privilege(
             target=self.name,
@@ -137,16 +131,14 @@ class Group(Subject):
             entity_identifier=entity_identifier,
             allowed="T",
             client=self.client,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject
         )
 
     def delete_privilege(
         self,
         entity_identifier: str,
         privilege_name: str,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> None:
         assign_privilege(
             target=self.name,
@@ -155,8 +147,7 @@ class Group(Subject):
             entity_identifier=entity_identifier,
             allowed="F",
             client=self.client,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
 
     def add_members(
@@ -164,8 +155,7 @@ class Group(Subject):
         subject_identifiers: list[str] = [],
         subject_ids: list[str] = [],
         replace_all_existing: str = "F",
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> None:
         add_members_to_group(
             group_name=self.name,
@@ -173,24 +163,21 @@ class Group(Subject):
             subject_identifiers=subject_identifiers,
             subject_ids=subject_ids,
             replace_all_existing=replace_all_existing,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
 
     def delete_members(
         self,
         subject_identifiers: list[str] = [],
         subject_ids: list[str] = [],
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> None:
         delete_members_from_group(
             group_name=self.name,
             client=self.client,
             subject_identifiers=subject_identifiers,
             subject_ids=subject_ids,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
 
     def has_members(
@@ -198,8 +185,7 @@ class Group(Subject):
         subject_identifiers: list[str] = [],
         subject_ids: list[str] = [],
         member_filter: str = "all",
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> dict[str, HasMember]:
         return has_members(
             group_name=self.name,
@@ -207,20 +193,17 @@ class Group(Subject):
             subject_identifiers=subject_identifiers,
             subject_ids=subject_ids,
             member_filter=member_filter,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
 
     def delete(
         self,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> None:
         delete_groups(
             group_names=[self.name],
             client=self.client,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
 
 

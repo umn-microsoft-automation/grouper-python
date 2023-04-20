@@ -51,29 +51,25 @@ class Client:
     def get_group(
         self,
         group_name: str,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> "Group":
         return get_group_by_name(
             group_name=group_name,
             client=self,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject
         )
 
     def get_groups(
         self,
         group_name: str,
         stem: str | None = None,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> list["Group"]:
         return find_group_by_name(
             group_name=group_name,
             client=self,
             stem=stem,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject
         )
 
     def get_stem(self, stem_name: str) -> "Stem":
@@ -83,19 +79,15 @@ class Client:
         self,
         subject_identifier: str,
         resolve_group: bool = True,
-        universal_id_attr: str | None = None,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
-    ) -> "Subject":
+        attributes: list[str] = [],
+        act_as_subject: Subject | None = None,
+    ) -> Subject:
         return get_subject_by_identifier(
             subject_identifier=subject_identifier,
             client=self,
             resolve_group=resolve_group,
-            universal_id_attr=(
-                universal_id_attr if universal_id_attr else self.universal_id_attr
-            ),
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            attributes=attributes,
+            act_as_subject=act_as_subject
         )
 
     def _call_grouper(
@@ -103,14 +95,12 @@ class Client:
         path: str,
         body: dict[str, Any],
         method: str = "POST",
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> dict[str, Any]:
         return call_grouper(
             client=self.httpx_client,
             path=path,
             body=body,
             method=method,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject_id=(act_as_subject.id if act_as_subject else None)
         )

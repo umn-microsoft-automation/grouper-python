@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    # from .client import Client
+    from .subject import Subject
     from .group import Group
 
 from pydantic import BaseModel
@@ -42,7 +42,6 @@ class Stem(BaseModel):
         client: Client,
         stem_body: dict[str, Any],
         subject_attr_names: list[str] = [],
-        universal_id_attr: str = "description",
     ) -> Stem:
         return cls(
             id=stem_body["uuid"],
@@ -60,8 +59,7 @@ class Stem(BaseModel):
         self,
         entity_identifier: str,
         privilege_name: str,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> None:
         assign_privilege(
             target=self.name,
@@ -70,16 +68,14 @@ class Stem(BaseModel):
             entity_identifier=entity_identifier,
             allowed="T",
             client=self.client,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
 
     def delete_privilege(
         self,
         entity_identifier: str,
         privilege_name: str,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> None:
         assign_privilege(
             target=self.name,
@@ -88,8 +84,7 @@ class Stem(BaseModel):
             entity_identifier=entity_identifier,
             allowed="F",
             client=self.client,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
 
     def create_child_stem(
@@ -97,8 +92,7 @@ class Stem(BaseModel):
         extension: str,
         display_extension: str,
         description: str = "",
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> Stem:
         create = CreateStem(
             name=f"{self.name}:{extension}",
@@ -108,8 +102,7 @@ class Stem(BaseModel):
         return create_stems(
             [create],
             self.client,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )[0]
 
     def create_child_group(
@@ -132,41 +125,35 @@ class Stem(BaseModel):
     def get_child_stems(
         self,
         recursive: bool,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> list[Stem]:
         return get_stems_by_parent(
             parent_name=self.name,
             client=self.client,
             recursive=recursive,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
 
     def get_child_groups(
         self,
         recursive: bool,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> list[Group]:
         return get_groups_by_parent(
             parent_name=self.name,
             client=self.client,
             recursive=recursive,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
 
     def delete(
         self,
-        act_as_subject_id: str | None = None,
-        act_as_subject_identifier: str | None = None,
+        act_as_subject: Subject | None = None,
     ) -> None:
         delete_stems(
             stem_names=[self.name],
             client=self.client,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject
         )
 
 

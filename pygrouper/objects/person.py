@@ -6,29 +6,29 @@ if TYPE_CHECKING:
 from .subject import Subject
 
 
-class User(Subject):
+class Person(Subject):
     sourceId: str
     name: str
     attributes: dict[str, str]
 
     @classmethod
     def from_results(
-        cls: type[User],
+        cls: type[Person],
         client: Client,
-        user_body: dict[str, Any],
+        person_body: dict[str, Any],
         subject_attr_names: list[str],
-        universal_id_attr: str = "description",
-    ) -> User:
+        # universal_id_attr: str = "description",
+    ) -> Person:
         attrs = {
-            subject_attr_names[i]: user_body["attributeValues"][i]
+            subject_attr_names[i]: person_body["attributeValues"][i]
             for i in range(len(subject_attr_names))
         }
         return cls(
-            id=user_body["id"],
-            description=user_body.get("description", ""),
-            universal_id=attrs.get(universal_id_attr, ""),
-            sourceId=user_body["sourceId"],
-            name=user_body["name"],
+            id=person_body["id"],
+            description=person_body.get("description", ""),
+            universal_id=attrs.get(client.universal_id_attr, ""),
+            sourceId=person_body["sourceId"],
+            name=person_body["name"],
             attributes=attrs,
             client=client,
         )

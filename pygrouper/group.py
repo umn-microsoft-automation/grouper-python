@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .objects.group import CreateGroup, Group
     from .objects.client import Client
+    from .objects.subject import Subject
     # from objects.stem import Stem
     # from .membership import Membership
 #     from .client import Client
@@ -243,8 +244,7 @@ def find_group_by_name(
     group_name: str,
     client: Client,
     stem: str | None = None,
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> list[Group]:
     from .objects.group import Group
 
@@ -261,8 +261,7 @@ def find_group_by_name(
         r = client._call_grouper(
             "/groups",
             body,
-            act_as_subject_id=act_as_subject_id,
-            act_as_subject_identifier=act_as_subject_identifier,
+            act_as_subject=act_as_subject,
         )
     except GrouperSuccessException as err:
         r = err.grouper_result
@@ -288,8 +287,7 @@ def create_groups(
     # description: str,
     client: Client,
     # detail: dict[str, Any] | None = None,
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> list[Group]:
     from .objects.group import Group
 
@@ -336,8 +334,7 @@ def create_groups(
     r = client._call_grouper(
         "/groups",
         body,
-        act_as_subject_id=act_as_subject_id,
-        act_as_subject_identifier=act_as_subject_identifier,
+        act_as_subject=act_as_subject,
     )
     return [
         Group.from_results(client, result["wsGroup"])
@@ -581,8 +578,7 @@ def create_groups(
 def delete_groups(
     group_names: list[str],
     client: Client,
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> None:
     group_lookup = [{"groupName": group} for group in group_names]
     body = {
@@ -593,8 +589,7 @@ def delete_groups(
     r = client._call_grouper(
         "/groups",
         body,
-        act_as_subject_id=act_as_subject_id,
-        act_as_subject_identifier=act_as_subject_identifier,
+        act_as_subject=act_as_subject,
     )
     for result in r["WsGroupDeleteResults"]["results"]:
         if result["resultMetadata"]["resultCode"] != "SUCCESS":
@@ -605,8 +600,7 @@ def get_groups_by_parent(
     parent_name: str,
     client: Client,
     recursive: bool = False,
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> list[Group]:
     from .objects.group import Group
 
@@ -623,8 +617,7 @@ def get_groups_by_parent(
     r = client._call_grouper(
         "/groups",
         body,
-        act_as_subject_id=act_as_subject_id,
-        act_as_subject_identifier=act_as_subject_identifier,
+        act_as_subject=act_as_subject,
     )
     print(r)
     if "groupResults" in r["WsFindGroupsResults"]:
@@ -639,8 +632,7 @@ def get_groups_by_parent(
 def get_group_by_name(
     group_name: str,
     client: Client,
-    act_as_subject_id: str | None = None,
-    act_as_subject_identifier: str | None = None,
+    act_as_subject: Subject | None = None,
 ) -> Group:
     from .objects.group import Group
 
@@ -654,8 +646,7 @@ def get_group_by_name(
     r = client._call_grouper(
         "/groups",
         body,
-        act_as_subject_id=act_as_subject_id,
-        act_as_subject_identifier=act_as_subject_identifier,
+        act_as_subject=act_as_subject
     )
     if "groupResults" not in r["WsFindGroupsResults"]:
         raise GrouperGroupNotFoundException(group_name)
