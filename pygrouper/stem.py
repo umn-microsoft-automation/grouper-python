@@ -218,28 +218,6 @@ def get_stems_by_parent(
     ]
 
 
-def create_stem(
-    stem_name: str,
-    display_extension: str,
-    description: str,
-    client: Client,
-    act_as_subject: Subject | None = None,
-) -> Stem:
-    body = {
-        "WsRestStemSaveLiteRequest": {
-            "description": description,
-            "stemName": stem_name,
-            "displayExtension": display_extension,
-        }
-    }
-    r = client._call_grouper(
-        f"/stems/{stem_name}",
-        body,
-        act_as_subject=act_as_subject
-    )
-    return Stem.from_results(client, r["WsStemSaveLiteResult"]["wsStem"])
-
-
 def create_stems(
     creates: list[CreateStem],
     client: Client,
