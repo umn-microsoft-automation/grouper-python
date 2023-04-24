@@ -38,7 +38,7 @@ class Group(Subject):
         return cls(
             id=group_body["uuid"],
             description=group_body.get("description", ""),
-            universal_id=group_body["name"],
+            universal_identifier=group_body["name"],
             extension=group_body["extension"],
             displayName=group_body["displayName"],
             uuid=group_body["uuid"],

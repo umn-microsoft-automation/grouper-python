@@ -27,7 +27,7 @@ class Client:
         username: str,
         password: str,
         timeout: float = 30.0,
-        universal_id_attr: str = "description",
+        universal_identifier_attr: str = "description",
     ) -> None:
         self.httpx_client = httpx.Client(
             auth=httpx.BasicAuth(username=username, password=password),
@@ -35,7 +35,7 @@ class Client:
             headers={"Content-type": "text/x-json;charset=UTF-8"},
             timeout=timeout,
         )
-        self.universal_id_attr = universal_id_attr
+        self.universal_identifier_attr = universal_identifier_attr
 
     def __enter__(self) -> Client:
         return self

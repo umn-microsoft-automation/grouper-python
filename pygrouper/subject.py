@@ -148,7 +148,7 @@ def get_subject_by_identifier(
 ) -> Subject:
     from .objects.person import Person
 
-    attribute_set = set(attributes + [client.universal_id_attr, "name"])
+    attribute_set = set(attributes + [client.universal_identifier_attr, "name"])
     body = {
         "WsRestGetSubjectsRequest": {
             "wsSubjectLookups": [{"subjectIdentifier": subject_identifier}],

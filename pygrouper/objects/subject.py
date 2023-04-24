@@ -18,7 +18,7 @@ class Subject(BaseModel):
     # displayName: str
     id: str
     description: str = ""
-    universal_id: str
+    universal_identifier: str
     # uuid: str
     # enabled: str
     # displayExtension: str
@@ -37,20 +37,19 @@ class Subject(BaseModel):
         client: Client,
         subject_body: dict[str, Any],
         subject_attr_names: list[str],
-        # universal_id_attr: str = client.universal_id_attr,
     ) -> Subject:
         attrs = {
             subject_attr_names[i]: subject_body["attributeValues"][i]
             for i in range(len(subject_attr_names))
         }
         if subject_body["sourceId"] == "g:gsa":
-            universal_id_attr = "name"
+            universal_identifier_attr = "name"
         else:
-            universal_id_attr = client.universal_id_attr
+            universal_identifier_attr = client.universal_identifier_attr
         return cls(
             id=subject_body["id"],
             description=subject_body.get("description", ""),
-            universal_id=attrs.get(universal_id_attr),
+            universal_identifier=attrs.get(universal_identifier_attr),
             client=client,
         )
 

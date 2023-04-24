@@ -17,7 +17,6 @@ class Person(Subject):
         client: Client,
         person_body: dict[str, Any],
         subject_attr_names: list[str],
-        # universal_id_attr: str = "description",
     ) -> Person:
         attrs = {
             subject_attr_names[i]: person_body["attributeValues"][i]
@@ -26,7 +25,7 @@ class Person(Subject):
         return cls(
             id=person_body["id"],
             description=person_body.get("description", ""),
-            universal_id=attrs.get(client.universal_id_attr, ""),
+            universal_identifier=attrs.get(client.universal_identifier_attr, ""),
             sourceId=person_body["sourceId"],
             name=person_body["name"],
             attributes=attrs,

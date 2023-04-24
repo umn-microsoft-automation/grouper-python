@@ -50,7 +50,7 @@ def get_memberships_for_groups(
     from .objects.person import Person
     from .objects.subject import Subject
 
-    attribute_set = set(attributes + [client.universal_id_attr, "name"])
+    attribute_set = set(attributes + [client.universal_identifier_attr, "name"])
 
     group_lookup = [{"groupName": group} for group in group_names]
     body = {
