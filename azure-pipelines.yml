@@ -33,3 +33,20 @@ stages:
         inputs:
           codeCoverageTool: Cobertura
           summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
+- stage: Build
+  jobs:
+  - job: Build
+    steps:
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '3.11'
+      - task: TwineAuthenticate@1
+        inputs:
+          artifactFeed: 'ITAC-API/pygrouper'
+      - script: |
+          pip install build twine
+          python -m build
+          cat $(PYPIRC_PATH)
+          # twine upload -r mkdocs-material-umn --config-file $(PYPIRC_PATH) dist/* --verbose
+          ls -l
+      - publish: $(Pipeline.Workspace)/dist
