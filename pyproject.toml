@@ -10,10 +10,6 @@ dynamic = ["dependencies", "optional-dependencies", "version"]
 [tool.setuptools]
 packages = ["pygrouper", "pygrouper.objects"]
 
-# [tool.setuptools.package-data]
-# "pygrouper" = ["py.typed"]
-# "pygrouper.objects" = ["py.typed"]
-
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
 optional-dependencies.dev = {file = "requirements-dev.txt"}
@@ -21,23 +17,8 @@ optional-dependencies.script = {file = "requirements-script.txt"}
 version = {attr = "pygrouper.__version__"}
 
 [tool.pytest.ini_options]
-# env = [
-#     "DEPLOY_ENV=pytest.env",
-#     "GROUPER_USER=your username",
-#     "GROUPER_PWD=your password",
-#     "GROUPER_URI=https://grouper/grouper-ws/servicesRest/v2_4_000",
-#     "GROUPER_STEM=test:stem",
-#     "AD_USER=domain\\username", #must be in this format, with the username prepended with "ad\\" (yes, two slashes)
-#     "AD_PWD=password",
-#     "AD_HOST=dc.domain",
-#     "AD_DN_BASE=OU=Units,DC=domain",
-#     "SQLALCHEMY_DATABASE_URL=sqlite://",
-#     'GOOGLE_SERVICES=["itac-test.iam.gserviceaccount.com"]',
-#     'CLIENT_IDS=["client_id"]'
-# ]
-
 testpaths = ["tests"]
-addopts = "--cov itac_api --cov-branch --cov-report=term-missing"
+addopts = "--cov pygrouper --cov-branch --cov-report=term-missing"
 
 [tool.pylama]
 linters = "pycodestyle,pyflakes"
