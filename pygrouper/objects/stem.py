@@ -22,16 +22,6 @@ class Stem(BaseModel):
     idIndex: str
     uuid: str
     id: str
-    # def __init__(self, client: httpx.Client, stem_body: dict[str, str]) -> None:
-    #     self.client = client
-    #     self.displayExtension = stem_body["displayExtension"]
-    #     self.extension = stem_body["extension"]
-    #     self.displayName = stem_body["displayName"]
-    #     self.name = stem_body["name"]
-    #     self.description = stem_body.get("description", "")
-    #     self.idIndex = stem_body["idIndex"]
-    #     self.uuid = stem_body["uuid"]
-    #     self.id = self.uuid
 
     class Config:
         arbitrary_types_allowed = True
@@ -151,9 +141,7 @@ class Stem(BaseModel):
         act_as_subject: Subject | None = None,
     ) -> None:
         delete_stems(
-            stem_names=[self.name],
-            client=self.client,
-            act_as_subject=act_as_subject
+            stem_names=[self.name], client=self.client, act_as_subject=act_as_subject
         )
 
 

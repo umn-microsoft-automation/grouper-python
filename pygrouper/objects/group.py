@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
+
 if TYPE_CHECKING:
     from .membership import Membership, HasMember
     from .client import Client
 from .subject import Subject
-# from .client import Client
 from pydantic import BaseModel
 from ..membership import (
     get_members_for_groups,
@@ -50,39 +50,6 @@ class Group(Subject):
             detail=group_body.get("detail"),
             client=client,
         )
-
-    # def __init__(self, client: httpx.Client, group_body: dict[str, Any]) -> None:
-    # super().__init__(
-    #     extension=group_body["extension"],
-    #     displayName=group_body["displayName"],
-    #     description=group_body.get("description", ""),
-    #     uuid=group_body["uuid"],
-    #     id=group_body["uuid"],
-    #     enabled=group_body["enabled"],
-    #     displayExtension=group_body["displayExtension"],
-    #     name=group_body["name"],
-    #     typeOfGroup=group_body["typeOfGroup"],
-    #     idIndex=group_body["idIndex"],
-    #     detail=group_body.get("detail"),
-    #     client=client,
-    # )
-    #     self.client = client
-    #     self.extension = group_body["extension"]
-    #     self.displayName = group_body["displayName"]
-    #     self.description = group_body.get("description", "")
-    #     self.uuid = group_body["uuid"]
-    #     self.id = self.uuid
-    #     self.enabled = group_body["enabled"]
-    #     self.displayExtension = group_body["displayExtension"]
-    #     self.name = group_body["name"]
-    #     self.typeOfGroup = group_body["typeOfGroup"]
-    #     self.idIndex = group_body["idIndex"]
-    #     self.detail: dict[str, Any] | None = group_body.get("detail")
-
-    # def __repr__(self) -> str:
-    #     return f"<Grouper Group {self.name}>"
-    # class Config:
-    #     arbitrary_types_allowed = True
 
     def get_members(
         self,
@@ -131,7 +98,7 @@ class Group(Subject):
             entity_identifier=entity_identifier,
             allowed="T",
             client=self.client,
-            act_as_subject=act_as_subject
+            act_as_subject=act_as_subject,
         )
 
     def delete_privilege(

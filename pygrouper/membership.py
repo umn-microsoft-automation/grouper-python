@@ -6,35 +6,12 @@ if TYPE_CHECKING:
     from .objects.client import Client
     from .objects.membership import Membership, HasMember
     from .objects.subject import Subject
-
-# from pydantic import BaseModel
-# from enum import StrEnum, auto
-# from .subject import Subject
-
 from .objects.exceptions import (
     GrouperGroupNotFoundException,
     GrouperSuccessException,
     GrouperPermissionDenied,
 )
-# from .objects.membership import Membership, MembershipType, MemberType, HasMember
-
 from .group import get_group_by_name
-
-
-# class MembershipType(StrEnum):
-#     DIRECT = auto()
-#     INDIRECT = auto()
-
-
-# class MemberType(StrEnum):
-#     USER = auto()
-#     GROUP = auto()
-
-
-# class Membership(BaseModel):
-#     member: Subject
-#     member_type: MemberType
-#     membership_type: MembershipType
 
 
 def get_memberships_for_groups(
@@ -68,13 +45,6 @@ def get_memberships_for_groups(
             body,
             act_as_subject=act_as_subject,
         )
-        # r = call_grouper(
-        #     client,
-        #     "/memberships",
-        #     body,
-        #     act_as_subject_id=act_as_subject_id,
-        #     act_as_subject_identifier=act_as_subject_identifier,
-        # )
     except GrouperSuccessException as err:
         r = err.grouper_result
         meta = r["WsGetMembershipsResults"]["resultMetadata"]
@@ -333,14 +303,6 @@ def get_members_for_groups(
                             group = get_group_by_name(subject["name"], client)
                             members.append(group)
                         else:
-                            # subject = Subject(
-                            #     id=subject["id"],
-                            #     description=subject["attributeValues"][
-                            #         description_index
-                            #     ],
-                            #     universal_id=subject["name"],
-                            #     client=client,
-                            # )
                             subject = Subject.from_results(
                                 client=client,
                                 subject_body=subject,

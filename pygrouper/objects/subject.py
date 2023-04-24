@@ -1,9 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
+
 if TYPE_CHECKING:
     from .group import Group
-    # from .client import Client
-    # from .membership import HasMember
 
 from .client import Client
 from pydantic import BaseModel
@@ -13,19 +12,9 @@ from ..membership import has_members
 
 
 class Subject(BaseModel):
-    # from .client import Client
-    # extension: str
-    # displayName: str
     id: str
     description: str = ""
     universal_identifier: str
-    # uuid: str
-    # enabled: str
-    # displayExtension: str
-    # name: str
-    # typeOfGroup: str
-    # idIndex: str
-    # detail: dict[str, Any] | None
     client: Client
 
     class Config:
