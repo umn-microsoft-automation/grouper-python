@@ -1,4 +1,4 @@
-from pygrouper import Client
+from grouper_python import Client
 
 
 def test_import():

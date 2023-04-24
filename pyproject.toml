@@ -3,22 +3,22 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pygrouper"
+name = "grouper_python"
 requires-python = ">=3.11"
 dynamic = ["dependencies", "optional-dependencies", "version"]
 
 [tool.setuptools]
-packages = ["pygrouper", "pygrouper.objects"]
+packages = ["grouper_python", "grouper_python.objects"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
 optional-dependencies.dev = {file = "requirements-dev.txt"}
 optional-dependencies.script = {file = "requirements-script.txt"}
-version = {attr = "pygrouper.__version__"}
+version = {attr = "grouper_python.__version__"}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov pygrouper --cov-branch --cov-report=term-missing"
+addopts = "--cov grouper_python --cov-branch --cov-report=term-missing"
 
 [tool.pylama]
 linters = "pycodestyle,pyflakes"
