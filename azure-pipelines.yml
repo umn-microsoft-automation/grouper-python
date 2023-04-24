@@ -48,5 +48,6 @@ stages:
           python -m build
           cat $(PYPIRC_PATH)
           # twine upload -r mkdocs-material-umn --config-file $(PYPIRC_PATH) dist/* --verbose
+          pwd
           ls -l
-      - publish: $(Pipeline.Workspace)/dist
+      - publish: $(Pipeline.Workspace)/s/dist
