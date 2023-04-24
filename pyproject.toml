@@ -36,8 +36,8 @@ version = {attr = "pygrouper.__version__"}
 #     'CLIENT_IDS=["client_id"]'
 # ]
 
-# testpaths = ["tests"]
-# addopts = "--cov itac_api --cov-branch --cov-report=term-missing"
+testpaths = ["tests"]
+addopts = "--cov itac_api --cov-branch --cov-report=term-missing"
 
 [tool.pylama]
 linters = "pycodestyle,pyflakes"

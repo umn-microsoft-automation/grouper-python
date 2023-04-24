@@ -1,0 +1,35 @@
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: Test
+  jobs:
+  - job: Test
+    steps:
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '3.11'
+      - script: pip install --upgrade --upgrade-strategy eager --editable .[dev]
+        displayName: Install Application & Dependencies
+      - script: |
+          pytest --junitxml=junit/test-pytest-results.xml --cov-report=xml
+        displayName: Run Tests
+        continueOnError: true
+      - script: |
+          pytest --pylama -k 'pylama' --junit-xml=junit/test-pylama-results.xml -o addopts= tests/ pygrouper/
+        displayName: Run Linter Tests
+        continueOnError: true
+      - script: |
+          mypy -p pygrouper --junit-xml junit/test-mypy-results.xml
+        displayName: Run MyPy Tests
+        continueOnError: true
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '**/test-*-results.xml'
+          failTaskOnFailedTests: true
+      - task: PublishCodeCoverageResults@1
+        condition: succeededOrFailed()
+        inputs:
+          codeCoverageTool: Cobertura
+          summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
