@@ -75,7 +75,7 @@ stages:
           pip install build twine
           python -m build
           cat $(PYPIRC_PATH)
-          twine upload -r grouper_python --config-file $(PYPIRC_PATH) dist/* --verbose
+          twine upload -r pygrouper --config-file $(PYPIRC_PATH) dist/* --verbose
           # pwd
           # ls -l
       # - publish: $(Pipeline.Workspace)/s/dist
