@@ -18,11 +18,11 @@ stages:
         displayName: Run Tests
         continueOnError: true
       - script: |
-          pytest --pylama -k 'pylama' --junit-xml=junit/test-pylama-results.xml -o addopts= tests/ pygrouper/
+          pytest --pylama -k 'pylama' --junit-xml=junit/test-pylama-results.xml -o addopts= tests/ grouper_python/
         displayName: Run Linter Tests
         continueOnError: true
       - script: |
-          mypy -p pygrouper --junit-xml junit/test-mypy-results.xml
+          mypy -p grouper_python --junit-xml junit/test-mypy-results.xml
         displayName: Run MyPy Tests
         continueOnError: true
       - task: PublishTestResults@2
@@ -50,7 +50,7 @@ stages:
           inputs:
             scriptSource: inline
             script: |
-              with open('pygrouper/__init__.py', 'r+') as f:
+              with open('grouper_python/__init__.py', 'r+') as f:
                 content = f.read()
 
                 for line in content.splitlines():
@@ -75,7 +75,7 @@ stages:
           pip install build twine
           python -m build
           cat $(PYPIRC_PATH)
-          twine upload -r pygrouper --config-file $(PYPIRC_PATH) dist/* --verbose
+          twine upload -r grouper_python --config-file $(PYPIRC_PATH) dist/* --verbose
           # pwd
           # ls -l
       # - publish: $(Pipeline.Workspace)/s/dist
