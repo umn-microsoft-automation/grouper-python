@@ -57,9 +57,22 @@ class Subject(BaseModel):
         return hash(self.id)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Subject):
-            return NotImplemented
-        return self.id == other.id
+        # This method relies on "duck typing" so we silence a lot of mypy errors
+        if isinstance(other, str):
+            # If a string is passed, see if it matches the id or identifier
+            return other == self.id or other == self.universal_identifier
+        try:
+            # Try and reference the id as an attribute
+            return self.id == other.id  # type: ignore[no-any-return, attr-defined]
+        except AttributeError:
+            pass
+        try:
+            # Try and reference the id as a key
+            return self.id == other["id"]  # type: ignore[no-any-return, index]
+        except KeyError:
+            pass
+        # If we've gotten this far, we can't figure out how make a comparison
+        return NotImplemented
 
     def get_groups(
         self,
