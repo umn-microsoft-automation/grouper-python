@@ -20,7 +20,7 @@ optional-dependencies.dev = {file = "requirements-dev.txt"}
 optional-dependencies.script = {file = "requirements-script.txt"}
 version = {attr = "pygrouper.__version__"}
 
-# [tool.pytest.ini_options]
+[tool.pytest.ini_options]
 # env = [
 #     "DEPLOY_ENV=pytest.env",
 #     "GROUPER_USER=your username",
