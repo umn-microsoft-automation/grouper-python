@@ -10,6 +10,9 @@ dynamic = ["dependencies", "optional-dependencies", "version"]
 [tool.setuptools]
 packages = ["grouper_python", "grouper_python.objects"]
 
+[tool.setuptools.package-data]
+"grouper_python" = ["py.typed"]
+
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
 optional-dependencies.dev = {file = "requirements-dev.txt"}
