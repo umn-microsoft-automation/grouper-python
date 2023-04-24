@@ -1,3 +1,5 @@
+name: $(Date:yyyyMMdd).$(Rev:rr)
+
 pool:
   vmImage: ubuntu-latest
 
@@ -43,36 +45,37 @@ stages:
       - task: TwineAuthenticate@1
         inputs:
           artifactFeed: 'ITAC-API/pygrouper'
-      - task: PythonScript@0
-        inputs:
-          scriptSource: inline
-          script: |
-            with open('pygrouper/__init__.py', 'r+') as f:
-              content = f.read()
+      - ${{ if ne(variables['Build.SourceBranchName'], 'main') }}:
+        - task: PythonScript@0
+          inputs:
+            scriptSource: inline
+            script: |
+              with open('pygrouper/__init__.py', 'r+') as f:
+                content = f.read()
 
-              for line in content.splitlines():
-                if line.startswith('__version__'):
-                  delim = '"' if '"' in line else "'"
-                  version = line.split(delim)[1]
-                  break
-              else:
-                raise RuntimeError("Unable to find version string.")
+                for line in content.splitlines():
+                  if line.startswith('__version__'):
+                    delim = '"' if '"' in line else "'"
+                    version = line.split(delim)[1]
+                    break
+                else:
+                  raise RuntimeError("Unable to find version string.")
 
-              print(f"found {version}")
-              build_number = "$(Build.BuildNumber)".replace(".", "")
-              new_version = f"{version}b{build_number}"
-              print(f"new version: {new_version}")
+                print(f"found {version}")
+                build_number = "$(Build.BuildNumber)".replace(".", "")
+                new_version = f"{version}b{build_number}"
+                print(f"new version: {new_version}")
 
-              content = content.replace(version, new_version)
-              f.seek(0)
-              f.write(content)
-              f.truncate()
-        displayName: Set prerelease Version
+                content = content.replace(version, new_version)
+                f.seek(0)
+                f.write(content)
+                f.truncate()
+          displayName: Set prerelease Version
       - script: |
           pip install build twine
           python -m build
-          cat $(PYPIRC_PATH)
-          # twine upload -r mkdocs-material-umn --config-file $(PYPIRC_PATH) dist/* --verbose
-          pwd
-          ls -l
-      - publish: $(Pipeline.Workspace)/s/dist
+          # cat $(PYPIRC_PATH)
+          twine upload -r mkdocs-material-umn --config-file $(PYPIRC_PATH) dist/* --verbose
+          # pwd
+          # ls -l
+      # - publish: $(Pipeline.Workspace)/s/dist
