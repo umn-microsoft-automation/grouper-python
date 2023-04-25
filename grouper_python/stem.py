@@ -70,11 +70,7 @@ def create_stems(
         }
         for stem in creates
     ]
-    body = {
-        "WsRestStemSaveRequest": {
-            "wsStemToSaves": stems_to_save,
-        }
-    }
+    body = {"WsRestStemSaveRequest": {"wsStemToSaves": stems_to_save}}
     r = client._call_grouper("/stems", body, act_as_subject=act_as_subject)
     return [
         Stem.from_results(client, result["wsStem"])

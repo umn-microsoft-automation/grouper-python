@@ -64,6 +64,20 @@ find_groups_result_valid_two_groups = {
     }
 }
 
+find_groups_result_stem_not_found = {
+    "WsFindGroupsResults": {
+        "resultMetadata": {
+            "success": "F",
+            "resultCode": "INVALID_QUERY",
+            "resultMessage": "Cant find stem: 'invalid',",
+        }
+    }
+}
+
+find_groups_result_valid_no_groups = {
+    "WsFindGroupsResults": {"resultMetadata": {"success": "T"}}
+}
+
 grouper_stem_1 = {
     "displayExtension": "Child Stem",
     "extension": "child",
@@ -169,6 +183,13 @@ get_subject_result_valid_group = {
     }
 }
 
+get_subject_result_subject_not_found = {
+    "WsGetSubjectsResults": {
+        "resultMetadata": {"success": "T"},
+        "wsSubjects": [{"success": "F"}],
+    }
+}
+
 get_members_result_valid_one_group = {
     "WsGetMembersResults": {
         "resultMetadata": {"success": "T"},
@@ -207,9 +228,7 @@ get_groups_for_subject_result_valid = {
 }
 
 get_groups_for_subject_no_memberships = {
-    "WsGetMembershipsResults": {
-        "resultMetadata": {"success": "T"},
-    }
+    "WsGetMembershipsResults": {"resultMetadata": {"success": "T"}}
 }
 
 create_priv_group_request = {
@@ -302,6 +321,30 @@ delete_groups_result_success = {
     "WsGroupDeleteResults": {
         "resultMetadata": {"success": "T"},
         "results": [{"resultMetadata": {"resultCode": "SUCCESS"}}],
+    }
+}
+
+delete_groups_permission_denied = {
+    "WsGroupDeleteResults": {
+        "resultMetadata": {"success": "F", "resultCode": "PROBLEM_DELETING_GROUPS"},
+        "results": [{"resultMetadata": {"resultCode": "INSUFFICIENT_PRIVILEGES"}}],
+    }
+}
+
+delete_groups_group_not_found = {
+    "WsGroupDeleteResults": {
+        "resultMetadata": {"success": "T"},
+        "results": [
+            {
+                "resultMetadata": {
+                    "resultCode": "SUCCESS_GROUP_NOT_FOUND",
+                    "resultMessage": (
+                        "Cant find group: 'WsGroupLookup[pitGroups=[],"
+                        "groupName=test:GROUP1,"
+                    ),
+                }
+            }
+        ],
     }
 }
 

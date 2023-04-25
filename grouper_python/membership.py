@@ -55,8 +55,8 @@ def get_memberships_for_groups(
                 group_name = split_message[2].split("=")[1]
             except Exception:
                 raise
-            raise GrouperGroupNotFoundException(group_name)
-        else:  # pragma: no cover
+            raise GrouperGroupNotFoundException(group_name, r)
+        else:
             raise
     if "wsGroups" not in r["WsGetMembershipsResults"].keys():
         # if "wsGroups" is not in the result but it was succesful,
@@ -121,7 +121,7 @@ def has_members(
 
     if not subject_identifiers and not subject_ids:
         raise ValueError(
-            "Exactly one of subject_identifiers or subject_ids must be specified"
+            "At least one of subject_identifiers or subject_ids must be specified"
         )
     # subject_lookups = []
     # if subject_identifiers:
@@ -145,8 +145,8 @@ def has_members(
     except GrouperSuccessException as err:
         r = err.grouper_result
         if r["WsHasMemberResults"]["resultMetadata"]["resultCode"] == "GROUP_NOT_FOUND":
-            raise GrouperGroupNotFoundException(group_name)
-        else:  # pragma: no cover
+            raise GrouperGroupNotFoundException(group_name, r)
+        else:
             raise
     results = r["WsHasMemberResults"]["results"]
     r_dict = {}
@@ -207,15 +207,15 @@ def add_members_to_group(
     except GrouperSuccessException as err:
         r = err.grouper_result
         if r["WsAddMemberResults"]["resultMetadata"]["resultCode"] == "GROUP_NOT_FOUND":
-            raise GrouperGroupNotFoundException(group_name)
+            raise GrouperGroupNotFoundException(group_name, r)
         elif (
             r["WsAddMemberResults"]["resultMetadata"]["resultCode"]
             == "PROBLEM_WITH_ASSIGNMENT"
             and r["WsAddMemberResults"]["results"][0]["resultMetadata"]["resultCode"]
             == "INSUFFICIENT_PRIVILEGES"
         ):
-            raise GrouperPermissionDenied()
-        else:  # pragma: no cover
+            raise GrouperPermissionDenied(r)
+        else:
             raise
     return Group.from_results(client, r["WsAddMemberResults"]["wsGroupAssigned"])
 
@@ -254,15 +254,15 @@ def delete_members_from_group(
             r["WsDeleteMemberResults"]["resultMetadata"]["resultCode"]
             == "GROUP_NOT_FOUND"
         ):
-            raise GrouperGroupNotFoundException(group_name)
+            raise GrouperGroupNotFoundException(group_name, r)
         elif (
             r["WsDeleteMemberResults"]["resultMetadata"]["resultCode"]
             == "PROBLEM_DELETING_MEMBERS"
             and r["WsDeleteMemberResults"]["results"][0]["resultMetadata"]["resultCode"]
             == "INSUFFICIENT_PRIVILEGES"
         ):
-            raise GrouperPermissionDenied()
-        else:  # pragma: no cover
+            raise GrouperPermissionDenied(r)
+        else:
             raise
     return Group.from_results(client, r["WsDeleteMemberResults"]["wsGroup"])
 

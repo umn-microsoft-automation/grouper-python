@@ -4,7 +4,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from grouper_python import Group
 from grouper_python.objects.membership import HasMember
+from grouper_python.objects.exceptions import (
+    GrouperPermissionDenied,
+    GrouperGroupNotFoundException,
+)
 from . import data
+import pytest
 import respx
 from httpx import Response
 
@@ -97,3 +102,28 @@ def test_delete(grouper_group: Group):
     )
 
     grouper_group.delete()
+
+
+@respx.mock
+def test_delete_permission_denied(grouper_group: Group):
+    respx.post(url=data.URI_BASE + "/groups").mock(
+        return_value=Response(200, json=data.delete_groups_permission_denied)
+    )
+
+    with pytest.raises(GrouperPermissionDenied):
+        grouper_group.delete()
+
+
+@respx.mock
+def test_delete_group_not_found(grouper_group: Group):
+    # This is unlikely to happen, unless the Group was
+    # manually construted. However this does test the code
+    # in the underlying method for when a group isn't found
+    respx.post(url=data.URI_BASE + "/groups").mock(
+        return_value=Response(200, json=data.delete_groups_group_not_found)
+    )
+
+    with pytest.raises(GrouperGroupNotFoundException) as excinfo:
+        grouper_group.delete()
+
+    assert excinfo.value.group_name == "test:GROUP1"

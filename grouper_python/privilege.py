@@ -28,8 +28,10 @@ def assign_privilege(
     elif target_type == "group":
         body["WsRestAssignGrouperPrivilegesLiteRequest"]["groupName"] = target
         body["WsRestAssignGrouperPrivilegesLiteRequest"]["privilegeType"] = "access"
-    else:  # pragma: no cover
-        pass
+    else:
+        raise ValueError(
+            f"Target type must be either 'stem' or 'group', but got {target_type}."
+        )
     client._call_grouper(
         "/grouperPrivileges",
         body,

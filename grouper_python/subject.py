@@ -21,11 +21,7 @@ def get_groups_for_subject(
     body: dict[str, Any] = {
         "WsRestGetMembershipsRequest": {
             "fieldName": "members",
-            "wsSubjectLookups": [
-                {
-                    "subjectId": subject_id,
-                }
-            ],
+            "wsSubjectLookups": [{"subjectId": subject_id}],
             "includeGroupDetail": "T",
         }
     }
@@ -70,7 +66,7 @@ def get_subject_by_identifier(
     r = client._call_grouper("/subjects", body, act_as_subject=act_as_subject)
     subject = r["WsGetSubjectsResults"]["wsSubjects"][0]
     if subject["success"] == "F":
-        raise GrouperSubjectNotFoundException(subject_identifier)
+        raise GrouperSubjectNotFoundException(subject_identifier, r)
     if subject["sourceId"] == "g:gsa":
         if resolve_group:
             # from .group import get_group_by_name

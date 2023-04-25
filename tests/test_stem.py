@@ -1,7 +1,4 @@
 from __future__ import annotations
-# from typing import TYPE_CHECKING
-
-# if TYPE_CHECKING:
 from grouper_python import Stem, Group
 from . import data
 import respx
@@ -50,6 +47,19 @@ def test_create_child_group(grouper_stem: Stem):
     )
 
     new_group = grouper_stem.create_child_group(
+        "GROUP3", "Test3 Display Name", "Group 3 Test description", {"typeNames": []}
+    )
+
+    assert type(new_group) is Group
+
+
+@respx.mock
+def test_create_child_group_with_detail(grouper_stem: Stem):
+    respx.post(url=data.URI_BASE + "/groups").mock(
+        return_value=Response(200, json=data.group_save_result_success_one_group)
+    )
+
+    new_group = grouper_stem.create_child_group(
         "GROUP3", "Test3 Display Name", "Group 3 Test description"
     )
 
@@ -77,10 +87,19 @@ def test_get_child_groups(grouper_stem: Stem):
         return_value=Response(200, json=data.find_groups_result_valid_one_group_3)
     )
 
-    groups = grouper_stem.get_child_groups(True)
-
+    groups = grouper_stem.get_child_groups(recursive=True)
     assert len(groups) == 1
     assert type(groups[0]) is Group
+
+    groups = grouper_stem.get_child_groups(recursive=False)
+    assert len(groups) == 1
+    assert type(groups[0]) is Group
+
+    respx.post(url=data.URI_BASE + "/groups").mock(
+        return_value=Response(200, json=data.find_groups_result_valid_no_groups)
+    )
+    groups = grouper_stem.get_child_groups(recursive=True)
+    assert len(groups) == 0
 
 
 @respx.mock
