@@ -119,24 +119,20 @@ def has_members(
 ) -> dict[str, HasMember]:
     from .objects.membership import HasMember
 
-    if (subject_identifiers and subject_ids) or (
-        not subject_identifiers and not subject_ids
-    ):
+    if not subject_identifiers and not subject_ids:
         raise ValueError(
             "Exactly one of subject_identifiers or subject_ids must be specified"
         )
-    subject_lookups = []
-    if subject_identifiers:
-        subject_lookups = [
-            {"subjectIdentifier": ident} for ident in subject_identifiers
-        ]
-        ident_key = "identifierLookup"
-    elif subject_ids:
-        subject_lookups = [{"subjectId": ident} for ident in subject_ids]
-        ident_key = "id"
+    # subject_lookups = []
+    # if subject_identifiers:
+    subject_identifier_lookups = [
+        {"subjectIdentifier": ident} for ident in subject_identifiers
+    ]
+    # if subject_ids:
+    subject_id_lookups = [{"subjectId": ident} for ident in subject_ids]
     body = {
         "WsRestHasMemberRequest": {
-            "subjectLookups": subject_lookups,
+            "subjectLookups": subject_identifier_lookups + subject_id_lookups,
             "memberFilter": member_filter,
         }
     }
@@ -162,14 +158,21 @@ def has_members(
                 ident = result["wsSubject"]["id"]
             else:
                 raise GrouperSuccessException(r)
-        if result["resultMetadata"]["resultCode"] == "IS_NOT_MEMBER":
-            is_member = HasMember.IS_NOT_MEMBER
-            ident = result["wsSubject"][ident_key]
-        elif result["resultMetadata"]["resultCode"] == "IS_MEMBER":
-            is_member = HasMember.IS_MEMBER
-            ident = result["wsSubject"][ident_key]
         else:
-            raise GrouperSuccessException(r)
+            if "identifierLookup" in result["wsSubject"]:
+                ident_key = "identifierLookup"
+            elif "id" in result["wsSubject"]:
+                ident_key = "id"
+            else:
+                raise GrouperSuccessException(r)
+            if result["resultMetadata"]["resultCode"] == "IS_NOT_MEMBER":
+                is_member = HasMember.IS_NOT_MEMBER
+                ident = result["wsSubject"][ident_key]
+            elif result["resultMetadata"]["resultCode"] == "IS_MEMBER":
+                is_member = HasMember.IS_MEMBER
+                ident = result["wsSubject"][ident_key]
+            else:
+                raise GrouperSuccessException(r)
         r_dict[ident] = is_member
     return r_dict
 
