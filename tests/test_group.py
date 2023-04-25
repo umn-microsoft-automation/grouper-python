@@ -81,7 +81,7 @@ def test_delete_members(grouper_group: Group):
 @respx.mock
 def test_has_members(grouper_group: Group):
     respx.post(url=data.URI_BASE + "/groups/test:GROUP1/members").mock(
-        return_value=Response(200, json=data.has_member_result1)
+        return_value=Response(200, json=data.has_member_result_identifier)
     )
 
     has_members = grouper_group.has_members(["user3333"])

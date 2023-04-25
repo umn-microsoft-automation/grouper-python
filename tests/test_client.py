@@ -57,7 +57,6 @@ def test_get_groups(grouper_client: Client):
     assert type(groups[1]) is Group
 
 
-
 @respx.mock
 def test_get_stem(grouper_client: Client):
     respx.post(url=data.URI_BASE + "/stems").mock(
@@ -73,7 +72,7 @@ def test_get_stem(grouper_client: Client):
 @respx.mock
 def test_get_subject(grouper_client: Client):
     respx.post(url=data.URI_BASE + "/subjects").mock(
-        return_value=Response(200, json=data.get_subject_result_valid)
+        return_value=Response(200, json=data.get_subject_result_valid_person)
     )
     subject = grouper_client.get_subject("user3333")
 
@@ -81,3 +80,13 @@ def test_get_subject(grouper_client: Client):
     assert isinstance(subject, Subject) is True
     assert subject.id == "abcdefgh3"
     assert subject.description == subject.universal_identifier == "user3333"
+
+
+@respx.mock
+def test_get_subject_is_group_not_resolve(grouper_client: Client):
+    respx.post(url=data.URI_BASE + "/subjects").mock(
+        return_value=Response(200, json=data.get_subject_result_valid_group)
+    )
+    subject = grouper_client.get_subject("test:GROUP2", False)
+
+    assert type(subject) is Subject

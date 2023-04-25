@@ -57,6 +57,7 @@ def get_subject_by_identifier(
     act_as_subject: Subject | None = None,
 ) -> Subject:
     from .objects.person import Person
+    from .objects.subject import Subject
 
     attribute_set = set(attributes + [client.universal_identifier_attr, "name"])
     body = {

@@ -62,8 +62,11 @@ def test_get_child_stems(grouper_stem: Stem):
         return_value=Response(200, json=data.find_stem_result_valid_2)
     )
 
-    stems = grouper_stem.get_child_stems(True)
+    stems = grouper_stem.get_child_stems(recursive=True)
+    assert len(stems) == 1
+    assert type(stems[0]) is Stem
 
+    stems = grouper_stem.get_child_stems(recursive=False)
     assert len(stems) == 1
     assert type(stems[0]) is Stem
 

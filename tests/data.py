@@ -64,22 +64,6 @@ find_groups_result_valid_two_groups = {
     }
 }
 
-get_subject_result_valid = {
-    "WsGetSubjectsResults": {
-        "resultMetadata": {"success": "T"},
-        "subjectAttributeNames": ["name", "description"],
-        "wsSubjects": [
-            {
-                "sourceId": "ldap",
-                "success": "T",
-                "attributeValues": ["User 3 Name", "user3333"],
-                "name": "User 3 Name",
-                "id": "12345abcd",
-            }
-        ],
-    }
-}
-
 grouper_stem_1 = {
     "displayExtension": "Child Stem",
     "extension": "child",
@@ -142,7 +126,7 @@ ws_membership5 = {
     "membershipType": "immediate",
     "groupId": "1ab0482715c74f51bc32822a70bf8f77",
     "subjectId": "abcdefgh3",
-    "subjectSourceId": "umnldap",
+    "subjectSourceId": "ldap",
 }
 ws_subject1 = {
     "sourceId": "g:gsa",
@@ -169,11 +153,19 @@ ws_subject4 = {
     "id": "abcdefgh3",
 }
 
-get_subject_result_valid = {
+get_subject_result_valid_person = {
     "WsGetSubjectsResults": {
         "resultMetadata": {"success": "T"},
         "subjectAttributeNames": ["description", "name"],
         "wsSubjects": [ws_subject4 | {"success": "T"}],
+    }
+}
+
+get_subject_result_valid_group = {
+    "WsGetSubjectsResults": {
+        "resultMetadata": {"success": "T"},
+        "subjectAttributeNames": ["description", "name"],
+        "wsSubjects": [ws_subject1 | {"success": "T"}],
     }
 }
 
@@ -204,6 +196,19 @@ get_membership_result_valid_one_group = {
         "subjectAttributeNames": ["description", "name"],
         "wsGroups": [grouper_group_result1],
         "wsSubjects": [ws_subject1, ws_subject2, ws_subject3, ws_subject4],
+    }
+}
+
+get_groups_for_subject_result_valid = {
+    "WsGetMembershipsResults": {
+        "resultMetadata": {"success": "T"},
+        "wsGroups": [grouper_group_result1],
+    }
+}
+
+get_groups_for_subject_no_memberships = {
+    "WsGetMembershipsResults": {
+        "resultMetadata": {"success": "T"},
     }
 }
 
@@ -245,13 +250,49 @@ remove_member_result_valid = {
     }
 }
 
-has_member_result1 = {
+has_member_result_identifier = {
     "WsHasMemberResults": {
         "resultMetadata": {"success": "T"},
         "results": [
             {
                 "resultMetadata": {"success": "T", "resultCode": "IS_MEMBER"},
                 "wsSubject": {"identifierLookup": "user3333"},
+            }
+        ],
+    }
+}
+
+has_member_result_id = {
+    "WsHasMemberResults": {
+        "resultMetadata": {"success": "T"},
+        "results": [
+            {
+                "resultMetadata": {"success": "T", "resultCode": "IS_MEMBER"},
+                "wsSubject": {"id": "abcdefgh3"},
+            }
+        ],
+    }
+}
+
+has_member_result_not_member = {
+    "WsHasMemberResults": {
+        "resultMetadata": {"success": "T"},
+        "results": [
+            {
+                "resultMetadata": {"success": "T", "resultCode": "IS_NOT_MEMBER"},
+                "wsSubject": {"id": "abcdefgh3"},
+            }
+        ],
+    }
+}
+
+has_member_result_subject_not_found = {
+    "WsHasMemberResults": {
+        "resultMetadata": {"success": "T"},
+        "results": [
+            {
+                "resultMetadata": {"success": "T", "resultCode2": "SUBJECT_NOT_FOUND"},
+                "wsSubject": {"id": "abcdefgh3"},
             }
         ],
     }
