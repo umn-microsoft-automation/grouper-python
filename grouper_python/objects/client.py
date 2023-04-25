@@ -41,6 +41,9 @@ class Client:
     ) -> None:
         self.httpx_client.close()
 
+    def close(self) -> None:
+        self.httpx_client.close()
+
     def get_group(
         self,
         group_name: str,
