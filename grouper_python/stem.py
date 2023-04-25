@@ -7,7 +7,9 @@ if TYPE_CHECKING:
     from .objects.subject import Subject
 
 
-def get_stem_by_name(stem_name: str, client: Client) -> Stem:
+def get_stem_by_name(
+    stem_name: str, client: Client, act_as_subject: Subject | None = None
+) -> Stem:
     from .objects.stem import Stem
 
     body = {
@@ -17,7 +19,7 @@ def get_stem_by_name(stem_name: str, client: Client) -> Stem:
             # "includeGroupDetail": "T",
         }
     }
-    r = client._call_grouper("/stems", body)
+    r = client._call_grouper("/stems", body, act_as_subject=act_as_subject)
     return Stem.from_results(client, r["WsFindStemsResults"]["stemResults"][0])
 
 

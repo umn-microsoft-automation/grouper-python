@@ -101,6 +101,7 @@ class Stem(BaseModel):
         display_extension: str,
         description: str = "",
         detail: dict[str, Any] | None = None,
+        act_as_subject: Subject | None = None,
     ) -> Group:
         from .group import CreateGroup
 
@@ -110,7 +111,7 @@ class Stem(BaseModel):
             description=description,
             detail=detail,
         )
-        return (create_groups([create], self.client))[0]
+        return (create_groups([create], self.client, act_as_subject))[0]
 
     def get_child_stems(
         self,

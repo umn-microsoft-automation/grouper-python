@@ -60,8 +60,8 @@ class Client:
             group_name=group_name, client=self, stem=stem, act_as_subject=act_as_subject
         )
 
-    def get_stem(self, stem_name: str) -> "Stem":
-        return get_stem_by_name(stem_name, self)
+    def get_stem(self, stem_name: str, act_as_subject: Subject | None = None) -> Stem:
+        return get_stem_by_name(stem_name, self, act_as_subject=act_as_subject)
 
     def get_subject(
         self,
