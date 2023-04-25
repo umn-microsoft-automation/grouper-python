@@ -41,3 +41,35 @@ def test_get_group(grouper_client: Client):
 
     assert group.name == group.universal_identifier == "test:GROUP1"
     assert group.id == group.uuid == "1ab0482715c74f51bc32822a70bf8f77"
+
+
+@respx.mock
+def test_get_groups(grouper_client: Client):
+    respx.post(url=data.URI_BASE + "/groups").mock(
+        return_value=Response(200, json=data.find_groups_result_valid_two_groups)
+    )
+    groups = grouper_client.get_groups("GROUP")
+
+    assert len(groups) == 2
+
+
+@respx.mock
+def test_get_stem(grouper_client: Client):
+    respx.post(url=data.URI_BASE + "/stems").mock(
+        return_value=Response(200, json=data.find_stem_result_valid)
+    )
+    stem = grouper_client.get_stem("test:child")
+
+    assert stem.id == stem.uuid == "e2c91c056fb746cca551d6887c722215"
+    assert stem.name == "test:child"
+
+
+@respx.mock
+def test_get_subject(grouper_client: Client):
+    respx.post(url=data.URI_BASE + "/subjects").mock(
+        return_value=Response(200, json=data.get_subject_result_valid)
+    )
+    subject = grouper_client.get_subject("username3")
+
+    assert subject.id == "12345abcd"
+    assert subject.description == subject.universal_identifier == "username3"

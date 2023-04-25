@@ -58,7 +58,7 @@ class Client:
         group_name: str,
         stem: str | None = None,
         act_as_subject: Subject | None = None,
-    ) -> list["Group"]:
+    ) -> list[Group]:
         return find_group_by_name(
             group_name=group_name, client=self, stem=stem, act_as_subject=act_as_subject
         )

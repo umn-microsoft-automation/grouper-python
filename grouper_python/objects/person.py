@@ -24,7 +24,7 @@ class Person(Subject):
         }
         return cls(
             id=person_body["id"],
-            description=person_body.get("description", ""),
+            description=attrs.get("description", ""),
             universal_identifier=attrs.get(client.universal_identifier_attr, ""),
             sourceId=person_body["sourceId"],
             name=person_body["name"],
