@@ -53,11 +53,14 @@ def get_memberships_for_groups(
                 result_message = meta["resultMessage"]
                 split_message = result_message.split(",")
                 group_name = split_message[2].split("=")[1]
-            except Exception:
-                raise
+            except Exception:  # pragma: no cover
+                # The try above feels fragile, so if it fails,
+                # throw the original SuccessException
+                raise err
             raise GrouperGroupNotFoundException(group_name, r)
-        else:
-            raise
+        else:  # pragma: no cover
+            # We don't know what exactly has happened here
+            raise err
     if "wsGroups" not in r["WsGetMembershipsResults"].keys():
         # if "wsGroups" is not in the result but it was succesful,
         # that means the group(s) exist but have no memberships
@@ -98,7 +101,9 @@ def get_memberships_for_groups(
             membership_type = MembershipType.DIRECT
         elif ws_membership["membershipType"] == "effective":
             membership_type = MembershipType.INDIRECT
-        else:
+        else:  # pragma: no cover
+            # Unknown membershipType, we don't know what's going on,
+            # so raise a SuccessException
             raise GrouperSuccessException(r)
 
         membership = Membership(
@@ -146,8 +151,10 @@ def has_members(
         r = err.grouper_result
         if r["WsHasMemberResults"]["resultMetadata"]["resultCode"] == "GROUP_NOT_FOUND":
             raise GrouperGroupNotFoundException(group_name, r)
-        else:
-            raise
+        else:  # pragma: no cover
+            # We're not sure what exactly has happened here,
+            # So raise the original SuccessException
+            raise err
     results = r["WsHasMemberResults"]["results"]
     r_dict = {}
     for result in results:
@@ -156,14 +163,18 @@ def has_members(
             if result["resultMetadata"]["resultCode2"] == "SUBJECT_NOT_FOUND":
                 is_member = HasMember.SUBJECT_NOT_FOUND
                 ident = result["wsSubject"]["id"]
-            else:
+            else:  # pragma: no cover
+                # We're not sure what exactly has happened here,
+                # So raise a SuccessException
                 raise GrouperSuccessException(r)
         else:
             if "identifierLookup" in result["wsSubject"]:
                 ident_key = "identifierLookup"
             elif "id" in result["wsSubject"]:
                 ident_key = "id"
-            else:
+            else:  # pragma: no cover
+                # We're not sure what exactly has happened here,
+                # So raise a SuccessException
                 raise GrouperSuccessException(r)
             if result["resultMetadata"]["resultCode"] == "IS_NOT_MEMBER":
                 is_member = HasMember.IS_NOT_MEMBER
@@ -171,7 +182,9 @@ def has_members(
             elif result["resultMetadata"]["resultCode"] == "IS_MEMBER":
                 is_member = HasMember.IS_MEMBER
                 ident = result["wsSubject"][ident_key]
-            else:
+            else:  # pragma: no cover
+                # We're not sure what exactly has happened here,
+                # So raise a SuccessException
                 raise GrouperSuccessException(r)
         r_dict[ident] = is_member
     return r_dict
@@ -215,8 +228,10 @@ def add_members_to_group(
             == "INSUFFICIENT_PRIVILEGES"
         ):
             raise GrouperPermissionDenied(r)
-        else:
-            raise
+        else:  # pragma: no cover
+            # We're not sure what exactly has happened here,
+            # So raise the original SuccessException
+            raise err
     return Group.from_results(client, r["WsAddMemberResults"]["wsGroupAssigned"])
 
 
@@ -262,7 +277,9 @@ def delete_members_from_group(
             == "INSUFFICIENT_PRIVILEGES"
         ):
             raise GrouperPermissionDenied(r)
-        else:
+        else:  # pragma: no cover
+            # We're not sure what exactly has happened here,
+            # So raise the original SuccessException
             raise
     return Group.from_results(client, r["WsDeleteMemberResults"]["wsGroup"])
 
@@ -288,11 +305,51 @@ def get_members_for_groups(
             "includeSubjectDetail": "T",
         }
     }
-    r = client._call_grouper(
-        "/groups",
-        body,
-        act_as_subject=act_as_subject,
-    )
+    try:
+        r = client._call_grouper(
+            "/groups",
+            body,
+            act_as_subject=act_as_subject,
+        )
+    except GrouperSuccessException as err:
+        r = err.grouper_result
+        for result in r["WsGetMembersResults"]["results"]:
+            meta = result["resultMetadata"]
+            if meta["success"] == "F":
+                if meta["resultCode"] == "GROUP_NOT_FOUND":
+                    try:
+                        result_message = meta["resultMessage"]
+                        split_message = result_message.split(",")
+                        group_name = split_message[2].split("=")[1]
+                    except Exception:  # pragma: no cover
+                        # The try above feels fragile, so if it fails,
+                        # throw the original SuccessException
+                        raise err
+                    raise GrouperGroupNotFoundException(group_name, r)
+                else:  # pragma: no cover
+                    # We're not sure what exactly has happened here,
+                    # So raise the original SuccessException
+                    raise err
+            else:
+                pass
+        # If we've gotten here, we don't know what's going on,
+        # So raise the original SuccessException
+        raise err  # pragma: no cover
+
+        # meta = r["WsGetMembersResults"]["resultMetadata"]
+        # if meta["resultCode"] == "GROUP_NOT_FOUND":
+        #     try:
+        #         result_message = meta["resultMessage"]
+        #         split_message = result_message.split(",")
+        #         group_name = split_message[2].split("=")[1]
+        #     except Exception:  # pragma: no cover
+        #         # The try above feels fragile, so if it fails,
+        #         # throw the original SuccessException
+        #         raise err
+        #     raise GrouperGroupNotFoundException(group_name, r)
+        # else:  # pragma: no cover
+        #     # We don't know what exactly has happened here
+        #     raise err
     r_dict: dict[Group, list[Subject]] = {}
     r_attributes = r["WsGetMembersResults"]["subjectAttributeNames"]
     for result in r["WsGetMembersResults"]["results"]:
@@ -322,6 +379,8 @@ def get_members_for_groups(
             else:
                 pass
             r_dict[key] = members
-        else:
-            pass
+        else:  # pragma: no cover
+            # we don't know what's going on,
+            # so raise a SuccessException
+            raise GrouperSuccessException(r)
     return r_dict

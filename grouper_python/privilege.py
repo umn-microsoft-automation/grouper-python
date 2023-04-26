@@ -30,7 +30,7 @@ def assign_privilege(
         body["WsRestAssignGrouperPrivilegesLiteRequest"]["privilegeType"] = "access"
     else:
         raise ValueError(
-            f"Target type must be either 'stem' or 'group', but got {target_type}."
+            f"Target type must be either 'stem' or 'group', but got '{target_type}'."
         )
     client._call_grouper(
         "/grouperPrivileges",

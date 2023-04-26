@@ -83,7 +83,7 @@ class Group(Subject):
             resolve_groups=resolve_groups,
             act_as_subject=act_as_subject,
         )
-        return memberships[self]
+        return memberships[self] if memberships else []
 
     def create_privilege(
         self,

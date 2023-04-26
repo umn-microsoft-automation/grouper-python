@@ -204,6 +204,55 @@ get_members_result_valid_one_group = {
     }
 }
 
+get_members_result_empty = {
+    "WsGetMembersResults": {
+        "resultMetadata": {"success": "T"},
+        "subjectAttributeNames": ["name", "description"],
+        "results": [
+            {"resultMetadata": {"success": "T"}, "wsGroup": grouper_group_result1}
+        ],
+    }
+}
+
+get_members_result_group_not_found = {
+    "WsGetMembersResults": {
+        "resultMetadata": {"success": "F"},
+        "results": [
+            {
+                "resultMetadata": {
+                    "success": "F",
+                    "resultCode": "GROUP_NOT_FOUND",
+                    "resultMessage": (
+                        "Invalid group for 'wsGroupLookup', "
+                        "WsGroupLookup[pitGroups=[],"
+                        "groupName=test:NOT,"
+                    ),
+                }
+            }
+        ],
+    }
+}
+
+get_members_result_multiple_groups_second_group_not_found = {
+    "WsGetMembersResults": {
+        "resultMetadata": {"success": "F"},
+        "results": [
+            {"resultMetadata": {"success": "T"}},
+            {
+                "resultMetadata": {
+                    "success": "F",
+                    "resultCode": "GROUP_NOT_FOUND",
+                    "resultMessage": (
+                        "Invalid group for 'wsGroupLookup', "
+                        "WsGroupLookup[pitGroups=[],"
+                        "groupName=test:NOT,"
+                    ),
+                }
+            },
+        ],
+    }
+}
+
 get_membership_result_valid_one_group = {
     "WsGetMembershipsResults": {
         "resultMetadata": {"success": "T"},
@@ -218,6 +267,24 @@ get_membership_result_valid_one_group = {
         "wsGroups": [grouper_group_result1],
         "wsSubjects": [ws_subject1, ws_subject2, ws_subject3, ws_subject4],
     }
+}
+
+get_membership_result_group_not_found = {
+    "WsGetMembershipsResults": {
+        "resultMetadata": {
+            "success": "F",
+            "resultCode": "GROUP_NOT_FOUND",
+            "resultMessage": (
+                "Invalid group for 'group', "
+                "WsGroupLookup[pitGroups=[],"
+                "groupName=test:NOT,"
+            ),
+        }
+    }
+}
+
+get_membership_result_valid_no_memberships = {
+    "WsGetMembershipsResults": {"resultMetadata": {"success": "T"}}
 }
 
 get_groups_for_subject_result_valid = {
@@ -262,6 +329,19 @@ add_member_result_valid = {
     }
 }
 
+add_member_result_group_not_found = {
+    "WsAddMemberResults": {
+        "resultMetadata": {"success": "F", "resultCode": "GROUP_NOT_FOUND"}
+    }
+}
+
+add_member_result_permission_denied = {
+    "WsAddMemberResults": {
+        "resultMetadata": {"success": "F", "resultCode": "PROBLEM_WITH_ASSIGNMENT"},
+        "results": [{"resultMetadata": {"resultCode": "INSUFFICIENT_PRIVILEGES"}}],
+    }
+}
+
 remove_member_result_valid = {
     "WsDeleteMemberResults": {
         "resultMetadata": {"success": "T"},
@@ -278,6 +358,19 @@ has_member_result_identifier = {
                 "wsSubject": {"identifierLookup": "user3333"},
             }
         ],
+    }
+}
+
+remove_member_result_group_not_found = {
+    "WsDeleteMemberResults": {
+        "resultMetadata": {"success": "F", "resultCode": "GROUP_NOT_FOUND"}
+    }
+}
+
+remove_member_result_permission_denied = {
+    "WsDeleteMemberResults": {
+        "resultMetadata": {"success": "F", "resultCode": "PROBLEM_DELETING_MEMBERS"},
+        "results": [{"resultMetadata": {"resultCode": "INSUFFICIENT_PRIVILEGES"}}],
     }
 }
 
@@ -317,6 +410,12 @@ has_member_result_subject_not_found = {
     }
 }
 
+has_member_result_group_not_found = {
+    "WsHasMemberResults": {
+        "resultMetadata": {"success": "F", "resultCode": "GROUP_NOT_FOUND"}
+    }
+}
+
 delete_groups_result_success = {
     "WsGroupDeleteResults": {
         "resultMetadata": {"success": "T"},
@@ -347,7 +446,6 @@ delete_groups_group_not_found = {
         ],
     }
 }
-
 
 create_priv_stem_request = {
     "WsRestAssignGrouperPrivilegesLiteRequest": {
