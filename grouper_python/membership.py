@@ -128,12 +128,9 @@ def has_members(
         raise ValueError(
             "At least one of subject_identifiers or subject_ids must be specified"
         )
-    # subject_lookups = []
-    # if subject_identifiers:
     subject_identifier_lookups = [
         {"subjectIdentifier": ident} for ident in subject_identifiers
     ]
-    # if subject_ids:
     subject_id_lookups = [{"subjectId": ident} for ident in subject_ids]
     body = {
         "WsRestHasMemberRequest": {
@@ -335,21 +332,6 @@ def get_members_for_groups(
         # If we've gotten here, we don't know what's going on,
         # So raise the original SuccessException
         raise err  # pragma: no cover
-
-        # meta = r["WsGetMembersResults"]["resultMetadata"]
-        # if meta["resultCode"] == "GROUP_NOT_FOUND":
-        #     try:
-        #         result_message = meta["resultMessage"]
-        #         split_message = result_message.split(",")
-        #         group_name = split_message[2].split("=")[1]
-        #     except Exception:  # pragma: no cover
-        #         # The try above feels fragile, so if it fails,
-        #         # throw the original SuccessException
-        #         raise err
-        #     raise GrouperGroupNotFoundException(group_name, r)
-        # else:  # pragma: no cover
-        #     # We don't know what exactly has happened here
-        #     raise err
     r_dict: dict[Group, list[Subject]] = {}
     r_attributes = r["WsGetMembersResults"]["subjectAttributeNames"]
     for result in r["WsGetMembersResults"]["results"]:
