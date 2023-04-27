@@ -7,8 +7,6 @@ from .subject import Subject
 
 
 class Person(Subject):
-    sourceId: str
-    name: str
     attributes: dict[str, str]
 
     @classmethod

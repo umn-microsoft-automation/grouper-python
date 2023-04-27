@@ -160,7 +160,6 @@ def get_groups_by_parent(
         body,
         act_as_subject=act_as_subject,
     )
-    print(r)
     if "groupResults" in r["WsFindGroupsResults"]:
         return [
             Group.from_results(client, grp)

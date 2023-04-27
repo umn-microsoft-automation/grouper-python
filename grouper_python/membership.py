@@ -253,7 +253,6 @@ def delete_members_from_group(
             "includeGroupDetail": "T",
         }
     }
-    print(body)
     try:
         r = client._call_grouper(
             "/groups",

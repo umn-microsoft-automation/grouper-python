@@ -22,7 +22,7 @@ stages:
         displayName: Run Linter Tests
         continueOnError: true
       - script: |
-          mypy -p grouper_python --junit-xml junit/test-mypy-results.xml
+          mypy --junit-xml junit/test-mypy-results.xml
         displayName: Run MyPy Tests
         continueOnError: true
       - task: PublishTestResults@2

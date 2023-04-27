@@ -1,5 +1,7 @@
 URI_BASE = "https://grouper/grouper-ws/servicesRest/v2_4_000"
 
+subject_attribute_names = ["description", "name"]
+
 grouper_group_result1 = {
     "extension": "GROUP1",
     "displayName": "Test Stem:Test1 Display Name",
@@ -170,7 +172,7 @@ ws_subject4 = {
 get_subject_result_valid_person = {
     "WsGetSubjectsResults": {
         "resultMetadata": {"success": "T"},
-        "subjectAttributeNames": ["description", "name"],
+        "subjectAttributeNames": subject_attribute_names,
         "wsSubjects": [ws_subject4 | {"success": "T"}],
     }
 }
@@ -178,7 +180,7 @@ get_subject_result_valid_person = {
 get_subject_result_valid_group = {
     "WsGetSubjectsResults": {
         "resultMetadata": {"success": "T"},
-        "subjectAttributeNames": ["description", "name"],
+        "subjectAttributeNames": subject_attribute_names,
         "wsSubjects": [ws_subject1 | {"success": "T"}],
     }
 }
@@ -193,7 +195,7 @@ get_subject_result_subject_not_found = {
 get_members_result_valid_one_group = {
     "WsGetMembersResults": {
         "resultMetadata": {"success": "T"},
-        "subjectAttributeNames": ["description", "name"],
+        "subjectAttributeNames": subject_attribute_names,
         "results": [
             {
                 "resultMetadata": {"success": "T"},
@@ -207,7 +209,7 @@ get_members_result_valid_one_group = {
 get_members_result_empty = {
     "WsGetMembersResults": {
         "resultMetadata": {"success": "T"},
-        "subjectAttributeNames": ["name", "description"],
+        "subjectAttributeNames": subject_attribute_names,
         "results": [
             {"resultMetadata": {"success": "T"}, "wsGroup": grouper_group_result1}
         ],
@@ -263,7 +265,7 @@ get_membership_result_valid_one_group = {
             ws_membership4,
             ws_membership5,
         ],
-        "subjectAttributeNames": ["description", "name"],
+        "subjectAttributeNames": subject_attribute_names,
         "wsGroups": [grouper_group_result1],
         "wsSubjects": [ws_subject1, ws_subject2, ws_subject3, ws_subject4],
     }
@@ -485,4 +487,123 @@ group_save_result_success_one_group = {
 
 delete_stem_result_success = {
     "WsStemDeleteResults": {"resultMetadata": {"success": "T"}}
+}
+
+priv_result_stem = {
+    "revokable": "T",
+    "ownerSubject": ws_subject2,
+    "allowed": "T",
+    "wsStem": grouper_stem_1,
+    "wsSubject": ws_subject4,
+    "privilegeType": "naming",
+    "privilegeName": "stemAdmin",
+}
+
+priv_result_group = {
+    "revokable": "T",
+    "ownerSubject": ws_subject2,
+    "allowed": "T",
+    "wsGroup": grouper_group_result1,
+    "wsSubject": ws_subject4,
+    "privilegeType": "access",
+    "privilegeName": "admin",
+}
+
+get_priv_for_stem_request = {
+    "WsRestGetGrouperPrivilegesLiteRequest": {
+        "includeSubjectDetail": "T",
+        "includeGroupDetail": "T",
+        "subjectAttributeNames": "",
+        "stemName": "test:child",
+    }
+}
+
+get_priv_for_stem_result = {
+    "WsGetGrouperPrivilegesLiteResult": {
+        "resultMetadata": {"success": "T"},
+        "subjectAttributeNames": subject_attribute_names,
+        "privilegeResults": [priv_result_stem],
+    }
+}
+
+get_priv_for_group_request = {
+    "WsRestGetGrouperPrivilegesLiteRequest": {
+        "includeSubjectDetail": "T",
+        "includeGroupDetail": "T",
+        "subjectAttributeNames": "",
+        "groupName": "test:GROUP1",
+    }
+}
+
+get_priv_for_group_with_subject_identifier_request = {
+    "WsRestGetGrouperPrivilegesLiteRequest": {
+        "includeSubjectDetail": "T",
+        "includeGroupDetail": "T",
+        "subjectAttributeNames": "",
+        "groupName": "test:GROUP1",
+        "subjectIdentifier": "user3333"
+    }
+}
+
+get_priv_for_group_with_privilege_name_request = {
+    "WsRestGetGrouperPrivilegesLiteRequest": {
+        "includeSubjectDetail": "T",
+        "includeGroupDetail": "T",
+        "subjectAttributeNames": "",
+        "groupName": "test:GROUP1",
+        "privilegeName": "admin",
+    }
+}
+
+get_priv_for_group_with_privilege_type_request = {
+    "WsRestGetGrouperPrivilegesLiteRequest": {
+        "includeSubjectDetail": "T",
+        "includeGroupDetail": "T",
+        "subjectAttributeNames": "",
+        "subjectId": "abcdefgh3",
+        "privilegeType": "access",
+    }
+}
+
+get_priv_for_group_result = {
+    "WsGetGrouperPrivilegesLiteResult": {
+        "resultMetadata": {"success": "T"},
+        "subjectAttributeNames": subject_attribute_names,
+        "privilegeResults": [priv_result_group],
+    }
+}
+
+get_priv_for_subject_request = {
+    "WsRestGetGrouperPrivilegesLiteRequest": {
+        "includeSubjectDetail": "T",
+        "includeGroupDetail": "T",
+        "subjectAttributeNames": "",
+        "subjectId": "abcdefgh3",
+    }
+}
+
+get_priv_for_subject_result = {
+    "WsGetGrouperPrivilegesLiteResult": {
+        "resultMetadata": {"success": "T"},
+        "subjectAttributeNames": subject_attribute_names,
+        "privilegeResults": [priv_result_stem, priv_result_group],
+    }
+}
+
+get_priv_result_subject_not_found = {
+    "WsGetGrouperPrivilegesLiteResult": {
+        "resultMetadata": {"success": "F", "resultCode": "SUBJECT_NOT_FOUND"}
+    }
+}
+
+get_priv_result_group_not_found = {
+    "WsGetGrouperPrivilegesLiteResult": {
+        "resultMetadata": {"success": "F", "resultCode": "GROUP_NOT_FOUND"}
+    }
+}
+
+get_priv_result_stem_not_found = {
+    "WsGetGrouperPrivilegesLiteResult": {
+        "resultMetadata": {"success": "F", "resultCode": "STEM_NOT_FOUND"}
+    }
 }

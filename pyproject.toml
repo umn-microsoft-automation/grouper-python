@@ -53,6 +53,7 @@ accept_no_yields_doc = false
 # linters = "pycodestyle,pyflakes,pydocstyle,pylint"
 
 [tool.mypy]
+files="tests,grouper_python"
 # --strict (as of 0.990)
 warn_unused_configs = true
 disallow_any_generics = true
@@ -70,3 +71,8 @@ strict_equality = true
 strict_concatenate = true
 # --strict end
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+allow_untyped_defs = true
+allow_incomplete_defs = true

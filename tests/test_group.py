@@ -1,3 +1,4 @@
+# mypy: allow_untyped_defs
 from __future__ import annotations
 from grouper_python.objects.membership import HasMember
 from grouper_python.objects.exceptions import (
@@ -70,7 +71,6 @@ def test_get_memberships(grouper_group: Group):
     assert len(memberships) == 5
     membership_types = {"Person": 0, "Group": 0}
     for m in memberships:
-        print(type(m.member))
         if type(m.member) is Person:
             membership_types["Person"] = membership_types["Person"] + 1
         elif type(m.member) is Group:
@@ -83,7 +83,6 @@ def test_get_memberships(grouper_group: Group):
     assert len(memberships) == 5
     membership_types = {"Person": 0, "Subject": 0}
     for m in memberships:
-        print(type(m.member))
         if type(m.member) is Person:
             membership_types["Person"] = membership_types["Person"] + 1
         elif type(m.member) is Subject:
@@ -133,7 +132,7 @@ def test_create_privilege(grouper_group: Group):
         json=data.create_priv_group_request,
     ).mock(Response(200, json=data.assign_priv_result_valid))
 
-    grouper_group.create_privilege("user3333", "update")
+    grouper_group.create_privilege_on_this("user3333", "update")
 
 
 @respx.mock
@@ -144,7 +143,20 @@ def test_delete_privilege(grouper_group: Group):
         json=data.delete_priv_group_request,
     ).mock(return_value=Response(200, json=data.assign_priv_result_valid))
 
-    grouper_group.delete_privilege("user3333", "update")
+    grouper_group.delete_privilege_on_this("user3333", "update")
+
+
+@respx.mock
+def test_get_privilege(grouper_group: Group):
+    respx.route(
+        method="POST",
+        url=data.URI_BASE + "/grouperPrivileges",
+        json=data.get_priv_for_group_request,
+    ).mock(return_value=Response(200, json=data.get_priv_for_group_result))
+
+    privs = grouper_group.get_privilege_on_this()
+
+    assert len(privs) == 1
 
 
 @respx.mock

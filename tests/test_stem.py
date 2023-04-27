@@ -13,7 +13,7 @@ def test_create_privilege(grouper_stem: Stem):
         json=data.create_priv_stem_request,
     ).mock(Response(200, json=data.assign_priv_result_valid))
 
-    grouper_stem.create_privilege("user3333", "stemAttrRead")
+    grouper_stem.create_privilege_on_this("user3333", "stemAttrRead")
 
 
 @respx.mock
@@ -24,7 +24,20 @@ def test_delete_privilege(grouper_stem: Stem):
         json=data.delete_priv_stem_request,
     ).mock(return_value=Response(200, json=data.assign_priv_result_valid))
 
-    grouper_stem.delete_privilege("user3333", "stemAttrRead")
+    grouper_stem.delete_privilege_on_this("user3333", "stemAttrRead")
+
+
+@respx.mock
+def test_get_privilege(grouper_stem: Stem):
+    respx.route(
+        method="POST",
+        url=data.URI_BASE + "/grouperPrivileges",
+        json=data.get_priv_for_stem_request,
+    ).mock(return_value=Response(200, json=data.get_priv_for_stem_result))
+
+    privs = grouper_stem.get_privilege_on_this()
+
+    assert len(privs) == 1
 
 
 @respx.mock

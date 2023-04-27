@@ -38,7 +38,6 @@ def call_grouper(
                 }
 
     result = client.request(method=method, url=path, json=body)
-    print(result.status_code)
     if result.status_code == 401:
         raise GrouperAuthException(result.text)
     data: dict[str, Any] = result.json()
