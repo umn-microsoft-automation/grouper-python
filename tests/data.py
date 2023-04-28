@@ -192,6 +192,18 @@ get_subject_result_subject_not_found = {
     }
 }
 
+get_subject_result_valid_search_multiple_subjects = {
+    "WsGetSubjectsResults": {
+        "resultMetadata": {"success": "T"},
+        "subjectAttributeNames": subject_attribute_names,
+        "wsSubjects": [ws_subject1, ws_subject2, ws_subject3],
+    }
+}
+
+get_subject_result_valid_search_no_results = {
+    "WsGetSubjectsResults": {"resultMetadata": {"success": "T"}}
+}
+
 get_members_result_valid_one_group = {
     "WsGetMembersResults": {
         "resultMetadata": {"success": "T"},

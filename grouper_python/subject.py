@@ -69,8 +69,6 @@ def get_subject_by_identifier(
         raise GrouperSubjectNotFoundException(subject_identifier, r)
     if subject["sourceId"] == "g:gsa":
         if resolve_group:
-            # from .group import get_group_by_name
-
             return get_group_by_name(subject["name"], client)
         else:
             return Subject.from_results(
@@ -84,3 +82,48 @@ def get_subject_by_identifier(
             person_body=subject,
             subject_attr_names=r["WsGetSubjectsResults"]["subjectAttributeNames"],
         )
+
+
+def find_subject(
+    search_string: str,
+    client: Client,
+    resolve_group: bool = True,
+    attributes: list[str] = [],
+    act_as_subject: Subject | None = None,
+) -> list[Subject]:
+    from .objects.person import Person
+    from .objects.subject import Subject
+
+    attribute_set = set(attributes + [client.universal_identifier_attr, "name"])
+    body = {
+        "WsRestGetSubjectsRequest": {
+            "searchString": search_string,
+            "includeSubjectDetail": "T",
+            "subjectAttributeNames": [*attribute_set],
+        }
+    }
+    r = client._call_grouper("/subjects", body, act_as_subject=act_as_subject)
+    r_list: list[Subject] = []
+    if "wsSubjects" in r["WsGetSubjectsResults"]:
+        subject_attr_names = r["WsGetSubjectsResults"]["subjectAttributeNames"]
+        for subject in r["WsGetSubjectsResults"]["wsSubjects"]:
+            if subject["sourceId"] == "g:gsa":
+                if resolve_group:
+                    r_list.append(get_group_by_name(subject["name"], client))
+                else:
+                    r_list.append(
+                        Subject.from_results(
+                            client=client,
+                            subject_body=subject,
+                            subject_attr_names=subject_attr_names,
+                        )
+                    )
+            else:
+                r_list.append(
+                    Person.from_results(
+                        client=client,
+                        person_body=subject,
+                        subject_attr_names=subject_attr_names,
+                    )
+                )
+    return r_list

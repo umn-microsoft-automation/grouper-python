@@ -159,3 +159,33 @@ def test_get_subject_not_found(grouper_client: Client):
         grouper_client.get_subject("notauser")
 
     assert excinfo.value.subject_identifier == "notauser"
+
+
+@respx.mock
+def test_find_subjects(grouper_client: Client):
+    respx.post(url=data.URI_BASE + "/subjects").mock(
+        return_value=Response(
+            200, json=data.get_subject_result_valid_search_multiple_subjects
+        )
+    )
+    respx.post(url=data.URI_BASE + "/groups").mock(
+        return_value=Response(200, json=data.find_groups_result_valid_one_group_1)
+    )
+
+    subjects = grouper_client.find_subject("user")
+    assert len(subjects) == 3
+
+    subjects = grouper_client.find_subject("user", resolve_group=False)
+    assert len(subjects) == 3
+
+
+@respx.mock
+def test_find_subjects_no_result(grouper_client: Client):
+    respx.post(url=data.URI_BASE + "/subjects").mock(
+        return_value=Response(
+            200, json=data.get_subject_result_valid_search_no_results
+        )
+    )
+
+    subjects = grouper_client.find_subject("user")
+    assert len(subjects) == 0

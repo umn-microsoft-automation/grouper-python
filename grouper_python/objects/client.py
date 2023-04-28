@@ -10,7 +10,7 @@ import httpx
 from ..util import call_grouper
 from ..group import get_group_by_name, find_group_by_name
 from ..stem import get_stem_by_name
-from ..subject import get_subject_by_identifier
+from ..subject import get_subject_by_identifier, find_subject
 
 
 class Client:
@@ -75,6 +75,21 @@ class Client:
     ) -> Subject:
         return get_subject_by_identifier(
             subject_identifier=subject_identifier,
+            client=self,
+            resolve_group=resolve_group,
+            attributes=attributes,
+            act_as_subject=act_as_subject,
+        )
+
+    def find_subject(
+        self,
+        search_string: str,
+        resolve_group: bool = True,
+        attributes: list[str] = [],
+        act_as_subject: Subject | None = None,
+    ) -> list[Subject]:
+        return find_subject(
+            search_string=search_string,
             client=self,
             resolve_group=resolve_group,
             attributes=attributes,
