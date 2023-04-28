@@ -175,7 +175,7 @@ def test_find_subjects(grouper_client: Client):
     subjects = grouper_client.find_subject("user")
     assert len(subjects) == 3
 
-    subjects = grouper_client.find_subject("user", resolve_group=False)
+    subjects = grouper_client.find_subject("user", resolve_groups=False)
     assert len(subjects) == 3
 
 

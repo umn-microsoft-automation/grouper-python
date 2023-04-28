@@ -84,14 +84,14 @@ class Client:
     def find_subject(
         self,
         search_string: str,
-        resolve_group: bool = True,
+        resolve_groups: bool = True,
         attributes: list[str] = [],
         act_as_subject: Subject | None = None,
     ) -> list[Subject]:
         return find_subject(
             search_string=search_string,
             client=self,
-            resolve_group=resolve_group,
+            resolve_groups=resolve_groups,
             attributes=attributes,
             act_as_subject=act_as_subject,
         )

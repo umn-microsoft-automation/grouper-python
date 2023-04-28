@@ -11,7 +11,7 @@ from .objects.exceptions import (
     GrouperSuccessException,
     GrouperPermissionDenied,
 )
-from .group import get_group_by_name
+from .util import resolve_subject
 
 
 def get_memberships_for_groups(
@@ -24,8 +24,6 @@ def get_memberships_for_groups(
 ) -> dict[Group, list[Membership]]:
     from .objects.membership import Membership, MembershipType, MemberType
     from .objects.group import Group
-    from .objects.person import Person
-    from .objects.subject import Subject
 
     attribute_set = set(attributes + [client.universal_identifier_attr, "name"])
 
@@ -75,27 +73,19 @@ def get_memberships_for_groups(
     groups = {
         ws_group["uuid"]: Group.from_results(client, ws_group) for ws_group in ws_groups
     }
-    r_attributes = r["WsGetMembershipsResults"].get("subjectAttributeNames", [])
+    subject_attr_names = r["WsGetMembershipsResults"].get("subjectAttributeNames", [])
     r_dict: dict[Group, list[Membership]] = {group: [] for group in groups.values()}
     for ws_membership in ws_memberships:
-        subject: Subject
+        subject = resolve_subject(
+            subject_body=subjects[ws_membership["subjectId"]],
+            client=client,
+            subject_attr_names=subject_attr_names,
+            resolve_group=resolve_groups,
+        )
         if ws_membership["subjectSourceId"] == "g:gsa":
             member_type = MemberType.GROUP
-            if resolve_groups:
-                subject = get_group_by_name(
-                    subjects[ws_membership["subjectId"]]["name"], client
-                )
-            else:
-                subject = Subject.from_results(
-                    client, subjects[ws_membership["subjectId"]], r_attributes
-                )
         else:
             member_type = MemberType.PERSON
-            subject = Person.from_results(
-                client,
-                subjects[ws_membership["subjectId"]],
-                r_attributes,
-            )
 
         if ws_membership["membershipType"] == "immediate":
             membership_type = MembershipType.DIRECT
@@ -288,9 +278,7 @@ def get_members_for_groups(
     resolve_groups: bool = True,
     act_as_subject: Subject | None = None,
 ) -> dict[Group, list[Subject]]:
-    from .objects.person import Person
     from .objects.group import Group
-    from .objects.subject import Subject
 
     group_lookup = [{"groupName": group} for group in group_names]
     body = {
@@ -332,33 +320,23 @@ def get_members_for_groups(
         # So raise the original SuccessException
         raise err  # pragma: no cover
     r_dict: dict[Group, list[Subject]] = {}
-    r_attributes = r["WsGetMembersResults"]["subjectAttributeNames"]
+    subject_attr_names = r["WsGetMembersResults"]["subjectAttributeNames"]
     for result in r["WsGetMembersResults"]["results"]:
-        members: list[Subject] = []
+        # members: list[Subject] = []
         key = Group.from_results(client, result["wsGroup"])
         if result["resultMetadata"]["success"] == "T":
             if "wsSubjects" in result:
-                for subject in result["wsSubjects"]:
-                    if subject["sourceId"] == "g:gsa":
-                        if resolve_groups:
-                            group = get_group_by_name(subject["name"], client)
-                            members.append(group)
-                        else:
-                            subject = Subject.from_results(
-                                client=client,
-                                subject_body=subject,
-                                subject_attr_names=r_attributes,
-                            )
-                            members.append(subject)
-                    else:
-                        person = Person.from_results(
-                            client=client,
-                            person_body=subject,
-                            subject_attr_names=r_attributes,
-                        )
-                        members.append(person)
+                members = [
+                    resolve_subject(
+                        subject_body=subject,
+                        client=client,
+                        subject_attr_names=subject_attr_names,
+                        resolve_group=resolve_groups,
+                    )
+                    for subject in result["wsSubjects"]
+                ]
             else:
-                pass
+                members = []
             r_dict[key] = members
         else:  # pragma: no cover
             # we don't know what's going on,
