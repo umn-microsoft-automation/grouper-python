@@ -1,8 +1,13 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .objects.client import Client
+    from .objects.subject import Subject
 import httpx
 from copy import deepcopy
 from .objects.exceptions import GrouperAuthException, GrouperSuccessException
+from .group import get_group_by_name
 
 
 def call_grouper(
@@ -38,11 +43,36 @@ def call_grouper(
                 }
 
     result = client.request(method=method, url=path, json=body)
-    print(result.status_code)
     if result.status_code == 401:
-        raise GrouperAuthException(result.content)
+        raise GrouperAuthException(result.text)
     data: dict[str, Any] = result.json()
     result_type = list(data.keys())[0]
     if data[result_type]["resultMetadata"]["success"] != "T":
         raise GrouperSuccessException(data)
     return data
+
+
+def resolve_subject(
+    subject_body: dict[str, Any],
+    client: Client,
+    subject_attr_names: list[str],
+    resolve_group: bool,
+) -> Subject:
+    from .objects.person import Person
+    from .objects.subject import Subject
+
+    if subject_body["sourceId"] == "g:gsa":
+        if resolve_group:
+            return get_group_by_name(subject_body["name"], client)
+        else:
+            return Subject.from_results(
+                client=client,
+                subject_body=subject_body,
+                subject_attr_names=subject_attr_names,
+            )
+    else:
+        return Person.from_results(
+            client=client,
+            person_body=subject_body,
+            subject_attr_names=subject_attr_names,
+        )

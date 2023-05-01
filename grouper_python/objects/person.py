@@ -1,14 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .client import Client
 from .subject import Subject
 
 
 class Person(Subject):
-    sourceId: str
-    name: str
     attributes: dict[str, str]
 
     @classmethod
@@ -24,7 +22,7 @@ class Person(Subject):
         }
         return cls(
             id=person_body["id"],
-            description=person_body.get("description", ""),
+            description=attrs.get("description", ""),
             universal_identifier=attrs.get(client.universal_identifier_attr, ""),
             sourceId=person_body["sourceId"],
             name=person_body["name"],

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .objects.group import CreateGroup, Group
     from .objects.client import Client
     from .objects.subject import Subject
@@ -9,6 +9,7 @@ from .objects.exceptions import (
     GrouperGroupNotFoundException,
     GrouperSuccessException,
     GrouperStemNotFoundException,
+    GrouperPermissionDenied,
 )
 
 
@@ -41,8 +42,9 @@ def find_group_by_name(
         if r_metadata["resultCode"] == "INVALID_QUERY" and r_metadata[
             "resultMessage"
         ].startswith("Cant find stem"):
-            raise GrouperStemNotFoundException(str(stem))
+            raise GrouperStemNotFoundException(str(stem), r)
         else:  # pragma: no cover
+            # Some other issue, so pass the failure through
             raise
     if "groupResults" in r["WsFindGroupsResults"]:
         return [
@@ -101,14 +103,38 @@ def delete_groups(
             "wsGroupLookups": group_lookup,
         }
     }
-    r = client._call_grouper(
-        "/groups",
-        body,
-        act_as_subject=act_as_subject,
-    )
+    try:
+        r = client._call_grouper(
+            "/groups",
+            body,
+            act_as_subject=act_as_subject,
+        )
+    except GrouperSuccessException as err:
+        r = err.grouper_result
+        r_metadata = r["WsGroupDeleteResults"]["resultMetadata"]
+        if r_metadata["resultCode"] == "PROBLEM_DELETING_GROUPS":
+            raise GrouperPermissionDenied(r)
+        else:  # pragma: no cover
+            # Some other issue, so pass the failure through
+            raise
     for result in r["WsGroupDeleteResults"]["results"]:
-        if result["resultMetadata"]["resultCode"] != "SUCCESS":
+        meta = result["resultMetadata"]
+        if meta["resultCode"] == "SUCCESS_GROUP_NOT_FOUND":
+            try:
+                result_message = meta["resultMessage"]
+                split_message = result_message.split(",")
+                group_name = split_message[1].split("=")[1]
+            except Exception:  # pragma: no cover
+                # The try above feels fragile, so if it fails,
+                # throw a SuccessException
+                raise GrouperSuccessException(r)
+            raise GrouperGroupNotFoundException(group_name, r)
+        elif meta["resultCode"] != "SUCCESS":  # pragma: no cover
+            # Whatever the error here, we don't understand it
+            # well enough to process it into something more specific
             raise GrouperSuccessException(r)
+        else:
+            pass
 
 
 def get_groups_by_parent(
@@ -134,7 +160,6 @@ def get_groups_by_parent(
         body,
         act_as_subject=act_as_subject,
     )
-    print(r)
     if "groupResults" in r["WsFindGroupsResults"]:
         return [
             Group.from_results(client, grp)
@@ -160,5 +185,5 @@ def get_group_by_name(
     }
     r = client._call_grouper("/groups", body, act_as_subject=act_as_subject)
     if "groupResults" not in r["WsFindGroupsResults"]:
-        raise GrouperGroupNotFoundException(group_name)
+        raise GrouperGroupNotFoundException(group_name, r)
     return Group.from_results(client, r["WsFindGroupsResults"]["groupResults"][0])

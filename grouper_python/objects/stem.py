@@ -1,12 +1,13 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .subject import Subject
     from .group import Group
+    from .privilege import Privilege
 
 from pydantic import BaseModel
-from ..privilege import assign_privilege
+from ..privilege import assign_privilege, get_privileges
 from ..stem import create_stems, get_stems_by_parent, delete_stems
 from ..group import create_groups, get_groups_by_parent
 from .client import Client
@@ -25,6 +26,7 @@ class Stem(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+        fields = {"client": {"exclude": True}}
 
     @classmethod
     def from_results(
@@ -45,7 +47,7 @@ class Stem(BaseModel):
             client=client,
         )
 
-    def create_privilege(
+    def create_privilege_on_this(
         self,
         entity_identifier: str,
         privilege_name: str,
@@ -61,7 +63,7 @@ class Stem(BaseModel):
             act_as_subject=act_as_subject,
         )
 
-    def delete_privilege(
+    def delete_privilege_on_this(
         self,
         entity_identifier: str,
         privilege_name: str,
@@ -74,6 +76,24 @@ class Stem(BaseModel):
             entity_identifier=entity_identifier,
             allowed="F",
             client=self.client,
+            act_as_subject=act_as_subject,
+        )
+
+    def get_privilege_on_this(
+        self,
+        subject_id: str | None = None,
+        subject_identifier: str | None = None,
+        privilege_name: str | None = None,
+        attributes: list[str] = [],
+        act_as_subject: Subject | None = None,
+    ) -> list[Privilege]:
+        return get_privileges(
+            client=self.client,
+            subject_id=subject_id,
+            subject_identifier=subject_identifier,
+            stem_name=self.name,
+            privilege_name=privilege_name,
+            attributes=attributes,
             act_as_subject=act_as_subject,
         )
 
@@ -101,6 +121,7 @@ class Stem(BaseModel):
         display_extension: str,
         description: str = "",
         detail: dict[str, Any] | None = None,
+        act_as_subject: Subject | None = None,
     ) -> Group:
         from .group import CreateGroup
 
@@ -110,7 +131,7 @@ class Stem(BaseModel):
             description=description,
             detail=detail,
         )
-        return (create_groups([create], self.client))[0]
+        return (create_groups([create], self.client, act_as_subject))[0]
 
     def get_child_stems(
         self,

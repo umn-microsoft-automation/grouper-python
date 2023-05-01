@@ -1,24 +1,27 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pygrouper"
+name = "grouper_python"
 requires-python = ">=3.11"
 dynamic = ["dependencies", "optional-dependencies", "version"]
 
 [tool.setuptools]
-packages = ["pygrouper", "pygrouper.objects"]
+packages = ["grouper_python", "grouper_python.objects"]
+
+[tool.setuptools.package-data]
+"grouper_python" = ["py.typed"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
 optional-dependencies.dev = {file = "requirements-dev.txt"}
 optional-dependencies.script = {file = "requirements-script.txt"}
-version = {attr = "pygrouper.__version__"}
+version = {attr = "grouper_python.__version__"}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov pygrouper --cov-branch --cov-report=term-missing"
+addopts = "--cov grouper_python --cov-branch --cov-report=term-missing"
 
 [tool.pylama]
 linters = "pycodestyle,pyflakes"
@@ -50,6 +53,7 @@ accept_no_yields_doc = false
 # linters = "pycodestyle,pyflakes,pydocstyle,pylint"
 
 [tool.mypy]
+files="tests,grouper_python"
 # --strict (as of 0.990)
 warn_unused_configs = true
 disallow_any_generics = true
@@ -67,3 +71,8 @@ strict_equality = true
 strict_concatenate = true
 # --strict end
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+allow_untyped_defs = true
+allow_incomplete_defs = true

@@ -1,9 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .membership import Membership, HasMember
     from .client import Client
+    from .privilege import Privilege
 from .subject import Subject
 from pydantic import BaseModel
 from ..membership import (
@@ -13,7 +14,7 @@ from ..membership import (
     delete_members_from_group,
     has_members,
 )
-from ..privilege import assign_privilege
+from ..privilege import assign_privilege, get_privileges
 from ..group import delete_groups
 
 
@@ -23,7 +24,6 @@ class Group(Subject):
     uuid: str
     enabled: str
     displayExtension: str
-    name: str
     typeOfGroup: str
     idIndex: str
     detail: dict[str, Any] | None
@@ -39,12 +39,13 @@ class Group(Subject):
             id=group_body["uuid"],
             description=group_body.get("description", ""),
             universal_identifier=group_body["name"],
+            sourceId="g:gsa",
+            name=group_body["name"],
             extension=group_body["extension"],
             displayName=group_body["displayName"],
             uuid=group_body["uuid"],
             enabled=group_body["enabled"],
             displayExtension=group_body["displayExtension"],
-            name=group_body["name"],
             typeOfGroup=group_body["typeOfGroup"],
             idIndex=group_body["idIndex"],
             detail=group_body.get("detail"),
@@ -83,9 +84,9 @@ class Group(Subject):
             resolve_groups=resolve_groups,
             act_as_subject=act_as_subject,
         )
-        return memberships[self]
+        return memberships[self] if memberships else []
 
-    def create_privilege(
+    def create_privilege_on_this(
         self,
         entity_identifier: str,
         privilege_name: str,
@@ -101,7 +102,7 @@ class Group(Subject):
             act_as_subject=act_as_subject,
         )
 
-    def delete_privilege(
+    def delete_privilege_on_this(
         self,
         entity_identifier: str,
         privilege_name: str,
@@ -114,6 +115,24 @@ class Group(Subject):
             entity_identifier=entity_identifier,
             allowed="F",
             client=self.client,
+            act_as_subject=act_as_subject,
+        )
+
+    def get_privilege_on_this(
+        self,
+        subject_id: str | None = None,
+        subject_identifier: str | None = None,
+        privilege_name: str | None = None,
+        attributes: list[str] = [],
+        act_as_subject: Subject | None = None,
+    ) -> list[Privilege]:
+        return get_privileges(
+            client=self.client,
+            subject_id=subject_id,
+            subject_identifier=subject_identifier,
+            group_name=self.name,
+            privilege_name=privilege_name,
+            attributes=attributes,
             act_as_subject=act_as_subject,
         )
 

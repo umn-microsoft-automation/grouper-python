@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .group import Group
     from .stem import Stem
     from .subject import Subject
@@ -10,7 +10,7 @@ import httpx
 from ..util import call_grouper
 from ..group import get_group_by_name, find_group_by_name
 from ..stem import get_stem_by_name
-from ..subject import get_subject_by_identifier
+from ..subject import get_subject_by_identifier, find_subject
 
 
 class Client:
@@ -41,6 +41,9 @@ class Client:
     ) -> None:
         self.httpx_client.close()
 
+    def close(self) -> None:
+        self.httpx_client.close()
+
     def get_group(
         self,
         group_name: str,
@@ -55,13 +58,13 @@ class Client:
         group_name: str,
         stem: str | None = None,
         act_as_subject: Subject | None = None,
-    ) -> list["Group"]:
+    ) -> list[Group]:
         return find_group_by_name(
             group_name=group_name, client=self, stem=stem, act_as_subject=act_as_subject
         )
 
-    def get_stem(self, stem_name: str) -> "Stem":
-        return get_stem_by_name(stem_name, self)
+    def get_stem(self, stem_name: str, act_as_subject: Subject | None = None) -> Stem:
+        return get_stem_by_name(stem_name, self, act_as_subject=act_as_subject)
 
     def get_subject(
         self,
@@ -74,6 +77,21 @@ class Client:
             subject_identifier=subject_identifier,
             client=self,
             resolve_group=resolve_group,
+            attributes=attributes,
+            act_as_subject=act_as_subject,
+        )
+
+    def find_subject(
+        self,
+        search_string: str,
+        resolve_groups: bool = True,
+        attributes: list[str] = [],
+        act_as_subject: Subject | None = None,
+    ) -> list[Subject]:
+        return find_subject(
+            search_string=search_string,
+            client=self,
+            resolve_groups=resolve_groups,
             attributes=attributes,
             act_as_subject=act_as_subject,
         )

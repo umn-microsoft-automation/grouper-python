@@ -1,12 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .objects.group import Group
     from .objects.client import Client
     from .objects.subject import Subject
 from .objects.exceptions import GrouperSubjectNotFoundException
-from .group import get_group_by_name
+from .util import resolve_subject
 
 
 def get_groups_for_subject(
@@ -21,11 +21,7 @@ def get_groups_for_subject(
     body: dict[str, Any] = {
         "WsRestGetMembershipsRequest": {
             "fieldName": "members",
-            "wsSubjectLookups": [
-                {
-                    "subjectId": subject_id,
-                }
-            ],
+            "wsSubjectLookups": [{"subjectId": subject_id}],
             "includeGroupDetail": "T",
         }
     }
@@ -56,8 +52,6 @@ def get_subject_by_identifier(
     attributes: list[str] = [],
     act_as_subject: Subject | None = None,
 ) -> Subject:
-    from .objects.person import Person
-
     attribute_set = set(attributes + [client.universal_identifier_attr, "name"])
     body = {
         "WsRestGetSubjectsRequest": {
@@ -69,21 +63,41 @@ def get_subject_by_identifier(
     r = client._call_grouper("/subjects", body, act_as_subject=act_as_subject)
     subject = r["WsGetSubjectsResults"]["wsSubjects"][0]
     if subject["success"] == "F":
-        raise GrouperSubjectNotFoundException(subject_identifier)
-    if subject["sourceId"] == "g:gsa":
-        if resolve_group:
-            # from .group import get_group_by_name
+        raise GrouperSubjectNotFoundException(subject_identifier, r)
+    return resolve_subject(
+        subject_body=subject,
+        client=client,
+        subject_attr_names=r["WsGetSubjectsResults"]["subjectAttributeNames"],
+        resolve_group=resolve_group,
+    )
 
-            return get_group_by_name(subject["name"], client)
-        else:
-            return Subject.from_results(
-                client=client,
+
+def find_subject(
+    search_string: str,
+    client: Client,
+    resolve_groups: bool = True,
+    attributes: list[str] = [],
+    act_as_subject: Subject | None = None,
+) -> list[Subject]:
+    attribute_set = set(attributes + [client.universal_identifier_attr, "name"])
+    body = {
+        "WsRestGetSubjectsRequest": {
+            "searchString": search_string,
+            "includeSubjectDetail": "T",
+            "subjectAttributeNames": [*attribute_set],
+        }
+    }
+    r = client._call_grouper("/subjects", body, act_as_subject=act_as_subject)
+    if "wsSubjects" in r["WsGetSubjectsResults"]:
+        subject_attr_names = r["WsGetSubjectsResults"]["subjectAttributeNames"]
+        return [
+            resolve_subject(
                 subject_body=subject,
-                subject_attr_names=r["WsGetSubjectsResults"]["subjectAttributeNames"],
+                client=client,
+                subject_attr_names=subject_attr_names,
+                resolve_group=resolve_groups,
             )
+            for subject in r["WsGetSubjectsResults"]["wsSubjects"]
+        ]
     else:
-        return Person.from_results(
-            client=client,
-            person_body=subject,
-            subject_attr_names=r["WsGetSubjectsResults"]["subjectAttributeNames"],
-        )
+        return []
