@@ -1,5 +1,7 @@
 # grouper-python
 
+This is a module to interact with the [Grouper Web Services API](https://spaces.at.internet2.edu/display/Grouper/Grouper+Web+Services).
+
 ## Installation
 
 To install grouper library only:
