@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:  # pragma: no cover
     from .group import Group
     from .privilege import Privilege
-from .client import Client
+from .client import GrouperClient
 from pydantic import BaseModel
 from ..subject import get_groups_for_subject
 from ..membership import has_members
@@ -17,7 +17,7 @@ class Subject(BaseModel):
     universal_identifier: str
     sourceId: str
     name: str
-    client: Client
+    client: GrouperClient
 
     class Config:
         arbitrary_types_allowed = True
@@ -26,7 +26,7 @@ class Subject(BaseModel):
     @classmethod
     def from_results(
         cls: type[Subject],
-        client: Client,
+        client: GrouperClient,
         subject_body: dict[str, Any],
         subject_attr_names: list[str],
     ) -> Subject:

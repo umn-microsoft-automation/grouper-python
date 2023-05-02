@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from grouper_python import Client, Person
+    from grouper_python import GrouperClient, Person
 import respx
 from httpx import Response
 from . import data
@@ -19,7 +19,7 @@ from grouper_python.objects.exceptions import (
 )
 
 
-def test_both_act_as_id_and_identifier(grouper_client: Client):
+def test_both_act_as_id_and_identifier(grouper_client: GrouperClient):
     with pytest.raises(ValueError) as excinfo:
         call_grouper(
             grouper_client.httpx_client,
@@ -36,7 +36,7 @@ def test_both_act_as_id_and_identifier(grouper_client: Client):
 
 
 @respx.mock
-def test_act_as_subject_lite(grouper_client: Client, grouper_person: Person):
+def test_act_as_subject_lite(grouper_client: GrouperClient, grouper_person: Person):
     respx.post(url=data.URI_BASE + "/groups").mock(
         return_value=Response(200, json=data.find_groups_result_valid_one_group_1)
     )
@@ -44,7 +44,7 @@ def test_act_as_subject_lite(grouper_client: Client, grouper_person: Person):
 
 
 @respx.mock
-def test_act_as_subject_notlite(grouper_client: Client, grouper_person: Person):
+def test_act_as_subject_notlite(grouper_client: GrouperClient, grouper_person: Person):
     respx.post(url=data.URI_BASE + "/subjects").mock(
         return_value=Response(200, json=data.get_subject_result_valid_person)
     )
@@ -52,7 +52,7 @@ def test_act_as_subject_notlite(grouper_client: Client, grouper_person: Person):
 
 
 @respx.mock
-def test_act_as_id_lite(grouper_client: Client):
+def test_act_as_id_lite(grouper_client: GrouperClient):
     orig_body = {
         "WsRestFindGroupsLiteRequest": {
             "groupName": "test:GROUP1",
@@ -80,7 +80,7 @@ def test_act_as_id_lite(grouper_client: Client):
 
 
 @respx.mock
-def test_act_as_identifier_lite(grouper_client: Client):
+def test_act_as_identifier_lite(grouper_client: GrouperClient):
     orig_body = {
         "WsRestFindGroupsLiteRequest": {
             "groupName": "test:GROUP1",
@@ -108,7 +108,7 @@ def test_act_as_identifier_lite(grouper_client: Client):
 
 
 @respx.mock
-def test_act_as_id_notlite(grouper_client: Client):
+def test_act_as_id_notlite(grouper_client: GrouperClient):
     orig_body = {
         "WsRestGetSubjectsRequest": {
             "wsSubjectLookups": [{"subjectIdentifier": "user1234"}],
@@ -134,7 +134,7 @@ def test_act_as_id_notlite(grouper_client: Client):
 
 
 @respx.mock
-def test_act_as_identifier_notlite(grouper_client: Client):
+def test_act_as_identifier_notlite(grouper_client: GrouperClient):
     orig_body = {
         "WsRestGetSubjectsRequest": {
             "wsSubjectLookups": [{"subjectIdentifier": "user1234"}],
@@ -160,7 +160,7 @@ def test_act_as_identifier_notlite(grouper_client: Client):
 
 
 @respx.mock
-def test_grouper_auth_exception(grouper_client: Client):
+def test_grouper_auth_exception(grouper_client: GrouperClient):
     """validate that a 401 (auth issue) from the grouper API is properly caught"""
     respx.post(url=data.URI_BASE + "/groups").mock(
         return_value=Response(401, text="<html>Unauthorized</html>")
@@ -171,7 +171,7 @@ def test_grouper_auth_exception(grouper_client: Client):
 
 
 @respx.mock
-def test_assign_privilege_unknown_target_type(grouper_client: Client):
+def test_assign_privilege_unknown_target_type(grouper_client: GrouperClient):
     with pytest.raises(ValueError) as excinfo:
         assign_privilege(
             "target:name", "type", "update", "user1234", "T", grouper_client
@@ -183,7 +183,7 @@ def test_assign_privilege_unknown_target_type(grouper_client: Client):
 
 
 @respx.mock
-def test_has_members_no_subject(grouper_client: Client):
+def test_has_members_no_subject(grouper_client: GrouperClient):
     with pytest.raises(ValueError) as excinfo:
         has_members("target:name", grouper_client)
     assert (
@@ -193,7 +193,7 @@ def test_has_members_no_subject(grouper_client: Client):
 
 
 @respx.mock
-def test_get_members_second_group_not_found(grouper_client: Client):
+def test_get_members_second_group_not_found(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/groups").mock(
         return_value=Response(
             200, json=data.get_members_result_multiple_groups_second_group_not_found

@@ -13,7 +13,7 @@ from ..stem import get_stem_by_name
 from ..subject import get_subject_by_identifier, find_subject
 
 
-class Client:
+class GrouperClient:
     def __init__(
         self,
         grouper_base_url: str,
@@ -30,7 +30,7 @@ class Client:
         )
         self.universal_identifier_attr = universal_identifier_attr
 
-    def __enter__(self) -> Client:
+    def __enter__(self) -> GrouperClient:
         return self
 
     def __exit__(

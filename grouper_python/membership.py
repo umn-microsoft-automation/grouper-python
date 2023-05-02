@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
     from .objects.group import Group
-    from .objects.client import Client
+    from .objects.client import GrouperClient
     from .objects.membership import Membership, HasMember
     from .objects.subject import Subject
 from .objects.exceptions import (
@@ -16,7 +16,7 @@ from .util import resolve_subject
 
 def get_memberships_for_groups(
     group_names: list[str],
-    client: Client,
+    client: GrouperClient,
     attributes: list[str] = [],
     member_filter: str = "all",
     resolve_groups: bool = True,
@@ -106,7 +106,7 @@ def get_memberships_for_groups(
 
 def has_members(
     group_name: str,
-    client: Client,
+    client: GrouperClient,
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
     member_filter: str = "all",
@@ -179,7 +179,7 @@ def has_members(
 
 def add_members_to_group(
     group_name: str,
-    client: Client,
+    client: GrouperClient,
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
     replace_all_existing: str = "F",
@@ -224,7 +224,7 @@ def add_members_to_group(
 
 def delete_members_from_group(
     group_name: str,
-    client: Client,
+    client: GrouperClient,
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
     act_as_subject: Subject | None = None,
@@ -272,7 +272,7 @@ def delete_members_from_group(
 
 def get_members_for_groups(
     group_names: list[str],
-    client: Client,
+    client: GrouperClient,
     attributes: list[str] = [],
     member_filter: str = "all",
     resolve_groups: bool = True,

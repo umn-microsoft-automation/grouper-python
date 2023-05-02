@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .client import Client
+    from .client import GrouperClient
 from pydantic import BaseModel
 from .subject import Subject
 from .group import Group
@@ -26,7 +26,7 @@ class Privilege(BaseModel):
     @classmethod
     def from_results(
         cls: type[Privilege],
-        client: Client,
+        client: GrouperClient,
         privilege_body: dict[str, Any],
         subject_attr_names: list[str] = [],
     ) -> Privilege:

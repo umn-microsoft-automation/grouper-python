@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from grouper_python import Client
+    from grouper_python import GrouperClient
 from grouper_python import Group, Stem, Subject, Person
 from . import data
 import pytest
@@ -16,31 +16,31 @@ from grouper_python.objects.exceptions import (
 
 
 def test_import_and_init():
-    from grouper_python import Client
+    from grouper_python import GrouperClient
 
-    Client("url", "username", "password")
+    GrouperClient("url", "username", "password")
 
 
 def test_context_manager():
-    from grouper_python import Client
+    from grouper_python import GrouperClient
 
-    with Client("url", "username", "password") as client:
+    with GrouperClient("url", "username", "password") as client:
         print(client)
 
     assert client.httpx_client.is_closed is True
 
 
 def test_close():
-    from grouper_python import Client
+    from grouper_python import GrouperClient
 
-    client = Client("url", "username", "password")
+    client = GrouperClient("url", "username", "password")
     assert client.httpx_client.is_closed is False
     client.close()
     assert client.httpx_client.is_closed is True
 
 
 @respx.mock
-def test_get_group(grouper_client: Client):
+def test_get_group(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/groups").mock(
         return_value=Response(200, json=data.find_groups_result_valid_one_group_1)
     )
@@ -50,7 +50,7 @@ def test_get_group(grouper_client: Client):
 
 
 @respx.mock
-def test_get_group_not_found(grouper_client: Client):
+def test_get_group_not_found(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/groups").mock(
         return_value=Response(200, json=data.find_groups_result_valid_no_groups)
     )
@@ -62,7 +62,7 @@ def test_get_group_not_found(grouper_client: Client):
 
 
 @respx.mock
-def test_get_groups(grouper_client: Client):
+def test_get_groups(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/groups").mock(
         return_value=Response(200, json=data.find_groups_result_valid_two_groups)
     )
@@ -79,7 +79,7 @@ def test_get_groups(grouper_client: Client):
 
 
 @respx.mock
-def test_get_groups_invalid_stem(grouper_client: Client):
+def test_get_groups_invalid_stem(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/groups").mock(
         return_value=Response(200, json=data.find_groups_result_stem_not_found)
     )
@@ -91,7 +91,7 @@ def test_get_groups_invalid_stem(grouper_client: Client):
 
 
 @respx.mock
-def test_get_groups_no_groups(grouper_client: Client):
+def test_get_groups_no_groups(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/groups").mock(
         return_value=Response(200, json=data.find_groups_result_valid_no_groups)
     )
@@ -101,7 +101,7 @@ def test_get_groups_no_groups(grouper_client: Client):
 
 
 @respx.mock
-def test_get_stem(grouper_client: Client):
+def test_get_stem(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/stems").mock(
         return_value=Response(200, json=data.find_stem_result_valid_1)
     )
@@ -113,7 +113,7 @@ def test_get_stem(grouper_client: Client):
 
 
 @respx.mock
-def test_get_subject(grouper_client: Client):
+def test_get_subject(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/subjects").mock(
         return_value=Response(200, json=data.get_subject_result_valid_person)
     )
@@ -126,7 +126,7 @@ def test_get_subject(grouper_client: Client):
 
 
 @respx.mock
-def test_get_subject_is_group(grouper_client: Client):
+def test_get_subject_is_group(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/subjects").mock(
         return_value=Response(200, json=data.get_subject_result_valid_group)
     )
@@ -140,7 +140,7 @@ def test_get_subject_is_group(grouper_client: Client):
 
 
 @respx.mock
-def test_get_subject_is_group_not_resolve(grouper_client: Client):
+def test_get_subject_is_group_not_resolve(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/subjects").mock(
         return_value=Response(200, json=data.get_subject_result_valid_group)
     )
@@ -150,7 +150,7 @@ def test_get_subject_is_group_not_resolve(grouper_client: Client):
 
 
 @respx.mock
-def test_get_subject_not_found(grouper_client: Client):
+def test_get_subject_not_found(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/subjects").mock(
         return_value=Response(200, json=data.get_subject_result_subject_not_found)
     )
@@ -162,7 +162,7 @@ def test_get_subject_not_found(grouper_client: Client):
 
 
 @respx.mock
-def test_find_subjects(grouper_client: Client):
+def test_find_subjects(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/subjects").mock(
         return_value=Response(
             200, json=data.get_subject_result_valid_search_multiple_subjects
@@ -180,7 +180,7 @@ def test_find_subjects(grouper_client: Client):
 
 
 @respx.mock
-def test_find_subjects_no_result(grouper_client: Client):
+def test_find_subjects_no_result(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/subjects").mock(
         return_value=Response(
             200, json=data.get_subject_result_valid_search_no_results

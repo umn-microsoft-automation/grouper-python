@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .client import Client
+    from .client import GrouperClient
 from .subject import Subject
 
 
@@ -12,7 +12,7 @@ class Person(Subject):
     @classmethod
     def from_results(
         cls: type[Person],
-        client: Client,
+        client: GrouperClient,
         person_body: dict[str, Any],
         subject_attr_names: list[str],
     ) -> Person:

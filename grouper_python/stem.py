@@ -3,12 +3,12 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
     from .objects.stem import Stem, CreateStem
-    from .objects.client import Client
+    from .objects.client import GrouperClient
     from .objects.subject import Subject
 
 
 def get_stem_by_name(
-    stem_name: str, client: Client, act_as_subject: Subject | None = None
+    stem_name: str, client: GrouperClient, act_as_subject: Subject | None = None
 ) -> Stem:
     from .objects.stem import Stem
 
@@ -25,7 +25,7 @@ def get_stem_by_name(
 
 def get_stems_by_parent(
     parent_name: str,
-    client: Client,
+    client: GrouperClient,
     recursive: bool = False,
     act_as_subject: Subject | None = None,
 ) -> list[Stem]:
@@ -54,7 +54,7 @@ def get_stems_by_parent(
 
 def create_stems(
     creates: list[CreateStem],
-    client: Client,
+    client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> list[Stem]:
     from .objects.stem import Stem
@@ -80,7 +80,7 @@ def create_stems(
 
 def delete_stems(
     stem_names: list[str],
-    client: Client,
+    client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> None:
     stem_lookups = [{"stemName": stem_name} for stem_name in stem_names]

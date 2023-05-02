@@ -1,9 +1,18 @@
+"""grouper-python.group - functions to interact with group objects.
+
+These are "helper" functions that most likely will not be called directly.
+Instead, a Client class should be created, then from there use that Client's
+methods to find and create objects, and use those objects' methods.
+These helper functions are used by those objects, but can be called
+directly if needed.
+"""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover
     from .objects.group import CreateGroup, Group
-    from .objects.client import Client
+    from .objects.client import GrouperClient
     from .objects.subject import Subject
 from .objects.exceptions import (
     GrouperGroupNotFoundException,
@@ -15,10 +24,25 @@ from .objects.exceptions import (
 
 def find_group_by_name(
     group_name: str,
-    client: Client,
+    client: GrouperClient,
     stem: str | None = None,
     act_as_subject: Subject | None = None,
 ) -> list[Group]:
+    """Find a group or groups by approximate name.
+
+    :param group_name: The group name to search for
+    :type group_name: str
+    :param client: a
+    :type client: GrouperClient
+    :param stem: _description_, defaults to None
+    :type stem: str | None, optional
+    :param act_as_subject: _description_, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperStemNotFoundException: _description_
+    :raises GrouperSuccessException: _description_
+    :return: _description_
+    :rtype: list[Group]
+    """
     from .objects.group import Group
 
     body = {
@@ -45,7 +69,7 @@ def find_group_by_name(
             raise GrouperStemNotFoundException(str(stem), r)
         else:  # pragma: no cover
             # Some other issue, so pass the failure through
-            raise
+            raise err
     if "groupResults" in r["WsFindGroupsResults"]:
         return [
             Group.from_results(client, grp)
@@ -57,7 +81,7 @@ def find_group_by_name(
 
 def create_groups(
     groups: list[CreateGroup],
-    client: Client,
+    client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> list[Group]:
     from .objects.group import Group
@@ -94,7 +118,7 @@ def create_groups(
 
 def delete_groups(
     group_names: list[str],
-    client: Client,
+    client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> None:
     group_lookup = [{"groupName": group} for group in group_names]
@@ -139,7 +163,7 @@ def delete_groups(
 
 def get_groups_by_parent(
     parent_name: str,
-    client: Client,
+    client: GrouperClient,
     recursive: bool = False,
     act_as_subject: Subject | None = None,
 ) -> list[Group]:
@@ -171,7 +195,7 @@ def get_groups_by_parent(
 
 def get_group_by_name(
     group_name: str,
-    client: Client,
+    client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> Group:
     from .objects.group import Group

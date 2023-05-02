@@ -49,7 +49,7 @@ accept_no_yields_doc = false
 # # parts of the code
 # #
 # # Test functions don't need docstrings, so don't check for them there.
-# path = "itac_api/*"
+# path = "grouper_python/*"
 # linters = "pycodestyle,pyflakes,pydocstyle,pylint"
 
 [tool.mypy]

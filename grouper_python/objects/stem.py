@@ -10,11 +10,11 @@ from pydantic import BaseModel
 from ..privilege import assign_privilege, get_privileges
 from ..stem import create_stems, get_stems_by_parent, delete_stems
 from ..group import create_groups, get_groups_by_parent
-from .client import Client
+from .client import GrouperClient
 
 
 class Stem(BaseModel):
-    client: Client
+    client: GrouperClient
     displayExtension: str
     extension: str
     displayName: str
@@ -31,7 +31,7 @@ class Stem(BaseModel):
     @classmethod
     def from_results(
         cls: type[Stem],
-        client: Client,
+        client: GrouperClient,
         stem_body: dict[str, Any],
         subject_attr_names: list[str] = [],
     ) -> Stem:

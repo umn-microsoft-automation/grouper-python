@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover
     from .membership import Membership, HasMember
-    from .client import Client
+    from .client import GrouperClient
     from .privilege import Privilege
 from .subject import Subject
 from pydantic import BaseModel
@@ -31,7 +31,7 @@ class Group(Subject):
     @classmethod
     def from_results(
         cls: type[Group],
-        client: Client,
+        client: GrouperClient,
         group_body: dict[str, Any],
         subject_attr_names: list[str] = [],
     ) -> Group:

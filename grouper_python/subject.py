@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover
     from .objects.group import Group
-    from .objects.client import Client
+    from .objects.client import GrouperClient
     from .objects.subject import Subject
 from .objects.exceptions import GrouperSubjectNotFoundException
 from .util import resolve_subject
@@ -11,7 +11,7 @@ from .util import resolve_subject
 
 def get_groups_for_subject(
     subject_id: str,
-    client: Client,
+    client: GrouperClient,
     stem: str | None = None,
     substems: bool = True,
     act_as_subject: Subject | None = None,
@@ -47,7 +47,7 @@ def get_groups_for_subject(
 
 def get_subject_by_identifier(
     subject_identifier: str,
-    client: Client,
+    client: GrouperClient,
     resolve_group: bool = True,
     attributes: list[str] = [],
     act_as_subject: Subject | None = None,
@@ -74,7 +74,7 @@ def get_subject_by_identifier(
 
 def find_subject(
     search_string: str,
-    client: Client,
+    client: GrouperClient,
     resolve_groups: bool = True,
     attributes: list[str] = [],
     act_as_subject: Subject | None = None,

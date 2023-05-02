@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .objects.client import Client
+    from .objects.client import GrouperClient
     from .objects.subject import Subject
     from .objects.privilege import Privilege
 from .objects.exceptions import (
@@ -19,7 +19,7 @@ def assign_privilege(
     privilege_name: str,
     entity_identifier: str,
     allowed: str,
-    client: Client,
+    client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> None:
     body = {
@@ -47,7 +47,7 @@ def assign_privilege(
 
 
 def get_privileges(
-    client: Client,
+    client: GrouperClient,
     subject_id: str | None = None,
     subject_identifier: str | None = None,
     group_name: str | None = None,

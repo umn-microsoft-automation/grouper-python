@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .objects.client import Client
+    from .objects.client import GrouperClient
     from .objects.subject import Subject
 import httpx
 from copy import deepcopy
@@ -54,7 +54,7 @@ def call_grouper(
 
 def resolve_subject(
     subject_body: dict[str, Any],
-    client: Client,
+    client: GrouperClient,
     subject_attr_names: list[str],
     resolve_group: bool,
 ) -> Subject:

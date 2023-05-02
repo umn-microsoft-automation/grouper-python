@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from grouper_python import Subject, Group, Client
+    from grouper_python import Subject, Group, GrouperClient
 import respx
 from httpx import Response
 from . import data
@@ -74,7 +74,7 @@ def test_get_privilege_with_privilege_type(grouper_subject: Subject):
     assert len(privs) == 1
 
 
-def test_get_privileges_no_target(grouper_client: Client):
+def test_get_privileges_no_target(grouper_client: GrouperClient):
 
     with pytest.raises(ValueError) as excinfo:
         get_privileges(grouper_client)
