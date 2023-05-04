@@ -113,6 +113,18 @@ def test_get_stem(grouper_client: GrouperClient):
 
 
 @respx.mock
+def test_get_stem_not_found(grouper_client: GrouperClient):
+    respx.post(url=data.URI_BASE + "/stems").mock(
+        return_value=Response(200, json=data.find_stem_result_valid_empty)
+    )
+
+    with pytest.raises(GrouperStemNotFoundException) as excinfo:
+        grouper_client.get_stem("invalid")
+
+    assert excinfo.value.stem_name == "invalid"
+
+
+@respx.mock
 def test_get_subject(grouper_client: GrouperClient):
     respx.post(url=data.URI_BASE + "/subjects").mock(
         return_value=Response(200, json=data.get_subject_result_valid_person)
@@ -172,10 +184,10 @@ def test_find_subjects(grouper_client: GrouperClient):
         return_value=Response(200, json=data.find_groups_result_valid_one_group_1)
     )
 
-    subjects = grouper_client.find_subject("user")
+    subjects = grouper_client.find_subjects("user")
     assert len(subjects) == 3
 
-    subjects = grouper_client.find_subject("user", resolve_groups=False)
+    subjects = grouper_client.find_subjects("user", resolve_groups=False)
     assert len(subjects) == 3
 
 
@@ -187,5 +199,5 @@ def test_find_subjects_no_result(grouper_client: GrouperClient):
         )
     )
 
-    subjects = grouper_client.find_subject("user")
+    subjects = grouper_client.find_subjects("user")
     assert len(subjects) == 0

@@ -1,3 +1,5 @@
+"""grouper_python, a Python package for interacting with Grouper Web Services."""
+
 from .objects.client import GrouperClient
 from .objects.group import Group
 from .objects.stem import Stem

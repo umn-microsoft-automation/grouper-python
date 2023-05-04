@@ -6,7 +6,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .client import GrouperClient
     from .privilege import Privilege
 from .subject import Subject
-from pydantic import BaseModel
+from dataclasses import dataclass
 from ..membership import (
     get_members_for_groups,
     get_memberships_for_groups,
@@ -19,38 +19,28 @@ from ..group import delete_groups
 
 
 class Group(Subject):
-    extension: str
-    displayName: str
-    uuid: str
-    enabled: str
-    displayExtension: str
-    typeOfGroup: str
-    idIndex: str
-    detail: dict[str, Any] | None
+    """Group object representing a Grouper group."""
 
-    @classmethod
-    def from_results(
-        cls: type[Group],
+    def __init__(
+        self,
         client: GrouperClient,
         group_body: dict[str, Any],
-        subject_attr_names: list[str] = [],
-    ) -> Group:
-        return cls(
-            id=group_body["uuid"],
-            description=group_body.get("description", ""),
-            universal_identifier=group_body["name"],
-            sourceId="g:gsa",
-            name=group_body["name"],
-            extension=group_body["extension"],
-            displayName=group_body["displayName"],
-            uuid=group_body["uuid"],
-            enabled=group_body["enabled"],
-            displayExtension=group_body["displayExtension"],
-            typeOfGroup=group_body["typeOfGroup"],
-            idIndex=group_body["idIndex"],
-            detail=group_body.get("detail"),
-            client=client,
-        )
+        subject_attr_names: list[str] = []
+    ) -> None:
+        self.id: str = group_body["uuid"]
+        self.description: str = group_body.get("description", "")
+        self.universal_identifier: str = group_body["name"]
+        self.sourceId = "g:gsa"
+        self.name: str = group_body["name"]
+        self.extension: str = group_body["extension"]
+        self.displayName: str = group_body["displayName"]
+        self.uuid: str = group_body["uuid"]
+        self.enabled: str = group_body["enabled"]
+        self.displayExtension: str = group_body["displayExtension"]
+        self.typeOfGroup: str = group_body["typeOfGroup"]
+        self.idIndex: str = group_body["idIndex"]
+        self.detail: dict[str, Any] | None = group_body.get("detail")
+        self.client = client
 
     def get_members(
         self,
@@ -193,7 +183,8 @@ class Group(Subject):
         )
 
 
-class CreateGroup(BaseModel):
+@dataclass
+class CreateGroup:
     name: str
     display_extension: str
     description: str

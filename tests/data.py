@@ -114,6 +114,13 @@ find_stem_result_valid_2 = {
     }
 }
 
+find_stem_result_valid_empty = {
+    "WsFindStemsResults": {
+        "resultMetadata": {"success": "T"},
+        "stemResults": [],
+    }
+}
+
 ws_membership1 = {
     "membershipType": "immediate",
     "groupId": "1ab0482715c74f51bc32822a70bf8f77",

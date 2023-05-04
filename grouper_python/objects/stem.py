@@ -6,46 +6,29 @@ if TYPE_CHECKING:  # pragma: no cover
     from .group import Group
     from .privilege import Privilege
 
-from pydantic import BaseModel
 from ..privilege import assign_privilege, get_privileges
 from ..stem import create_stems, get_stems_by_parent, delete_stems
 from ..group import create_groups, get_groups_by_parent
 from .client import GrouperClient
+from dataclasses import dataclass
 
 
-class Stem(BaseModel):
-    client: GrouperClient
-    displayExtension: str
-    extension: str
-    displayName: str
-    name: str
-    description: str
-    idIndex: str
-    uuid: str
-    id: str
-
-    class Config:
-        arbitrary_types_allowed = True
-        fields = {"client": {"exclude": True}}
-
-    @classmethod
-    def from_results(
-        cls: type[Stem],
+class Stem:
+    def __init__(
+        self,
         client: GrouperClient,
         stem_body: dict[str, Any],
         subject_attr_names: list[str] = [],
-    ) -> Stem:
-        return cls(
-            id=stem_body["uuid"],
-            description=stem_body.get("description", ""),
-            extension=stem_body["extension"],
-            displayName=stem_body["displayName"],
-            uuid=stem_body["uuid"],
-            displayExtension=stem_body["displayExtension"],
-            name=stem_body["name"],
-            idIndex=stem_body["idIndex"],
-            client=client,
-        )
+    ) -> None:
+        self.id: str = stem_body["uuid"]
+        self.description: str = stem_body.get("description", "")
+        self.extension: str = stem_body["extension"]
+        self.displayName: str = stem_body["displayName"]
+        self.uuid: str = stem_body["uuid"]
+        self.displayExtension: str = stem_body["displayExtension"]
+        self.name: str = stem_body["name"]
+        self.idIndex: str = stem_body["idIndex"]
+        self.client = client
 
     def create_privilege_on_this(
         self,
@@ -166,7 +149,8 @@ class Stem(BaseModel):
         )
 
 
-class CreateStem(BaseModel):
+@dataclass
+class CreateStem:
     name: str
     displayExtension: str
     description: str

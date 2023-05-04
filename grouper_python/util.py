@@ -65,13 +65,13 @@ def resolve_subject(
         if resolve_group:
             return get_group_by_name(subject_body["name"], client)
         else:
-            return Subject.from_results(
+            return Subject(
                 client=client,
                 subject_body=subject_body,
                 subject_attr_names=subject_attr_names,
             )
     else:
-        return Person.from_results(
+        return Person(
             client=client,
             person_body=subject_body,
             subject_attr_names=subject_attr_names,

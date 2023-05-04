@@ -70,7 +70,6 @@ no_implicit_reexport = true
 strict_equality = true
 strict_concatenate = true
 # --strict end
-plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 module = "tests.*"

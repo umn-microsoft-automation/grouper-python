@@ -71,7 +71,7 @@ def get_memberships_for_groups(
     ws_subjects = r["WsGetMembershipsResults"].get("wsSubjects", [])
     subjects = {ws_subject["id"]: ws_subject for ws_subject in ws_subjects}
     groups = {
-        ws_group["uuid"]: Group.from_results(client, ws_group) for ws_group in ws_groups
+        ws_group["uuid"]: Group(client, ws_group) for ws_group in ws_groups
     }
     subject_attr_names = r["WsGetMembershipsResults"].get("subjectAttributeNames", [])
     r_dict: dict[Group, list[Membership]] = {group: [] for group in groups.values()}
@@ -219,7 +219,7 @@ def add_members_to_group(
             # We're not sure what exactly has happened here,
             # So raise the original SuccessException
             raise err
-    return Group.from_results(client, r["WsAddMemberResults"]["wsGroupAssigned"])
+    return Group(client, r["WsAddMemberResults"]["wsGroupAssigned"])
 
 
 def delete_members_from_group(
@@ -267,7 +267,7 @@ def delete_members_from_group(
             # We're not sure what exactly has happened here,
             # So raise the original SuccessException
             raise
-    return Group.from_results(client, r["WsDeleteMemberResults"]["wsGroup"])
+    return Group(client, r["WsDeleteMemberResults"]["wsGroup"])
 
 
 def get_members_for_groups(
@@ -323,7 +323,7 @@ def get_members_for_groups(
     subject_attr_names = r["WsGetMembersResults"]["subjectAttributeNames"]
     for result in r["WsGetMembersResults"]["results"]:
         # members: list[Subject] = []
-        key = Group.from_results(client, result["wsGroup"])
+        key = Group(client, result["wsGroup"])
         if result["resultMetadata"]["success"] == "T":
             if "wsSubjects" in result:
                 members = [

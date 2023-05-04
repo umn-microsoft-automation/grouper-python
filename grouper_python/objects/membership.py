@@ -1,8 +1,9 @@
 from __future__ import annotations
-
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:  # pragma: no cover
+    from .subject import Subject
 from enum import Enum, StrEnum, auto
-from .subject import Subject
-from pydantic import BaseModel
+from dataclasses import dataclass
 
 
 class HasMember(Enum):
@@ -21,7 +22,8 @@ class MemberType(StrEnum):
     GROUP = auto()
 
 
-class Membership(BaseModel):
+@dataclass
+class Membership:
     member: Subject
     member_type: MemberType
     membership_type: MembershipType

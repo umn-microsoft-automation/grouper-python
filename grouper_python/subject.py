@@ -38,7 +38,7 @@ def get_groups_for_subject(
     )
     if "wsGroups" in r["WsGetMembershipsResults"]:
         return [
-            Group.from_results(client, grp)
+            Group(client, grp)
             for grp in r["WsGetMembershipsResults"]["wsGroups"]
         ]
     else:
@@ -52,6 +52,27 @@ def get_subject_by_identifier(
     attributes: list[str] = [],
     act_as_subject: Subject | None = None,
 ) -> Subject:
+    """Get the subject with the given identifier.
+
+    :param subject_identifier: Identifier of subject to get
+    :type subject_identifier: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param resolve_group: Whether to resolve subject that is a group into a Group
+    object, which will require an additional API for each found group,
+    defaults to True
+    :type resolve_group: bool, optional
+    :param attributes: Additional attributes to return for the Subject,
+    defaults to []
+    :type attributes: list[str], optional
+    :param act_as_subject:  Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperSubjectNotFoundException: A subject cannot be found
+    with the given identifier
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: The subject with the given name
+    :rtype: Subject
+    """
     attribute_set = set(attributes + [client.universal_identifier_attr, "name"])
     body = {
         "WsRestGetSubjectsRequest": {
@@ -72,13 +93,31 @@ def get_subject_by_identifier(
     )
 
 
-def find_subject(
+def find_subjects(
     search_string: str,
     client: GrouperClient,
     resolve_groups: bool = True,
     attributes: list[str] = [],
     act_as_subject: Subject | None = None,
 ) -> list[Subject]:
+    """Find subjects with the given search string.
+
+    :param search_string: Free-form string tos earch for
+    :type search_string: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param resolve_groups: Whether to resolve subjects that are groups into Group
+    objects, which will require an additional API, defaults to True
+    :type resolve_groups: bool, optional
+    :param attributes: Additional attributes to return for the Subject,
+    defaults to []
+    :type attributes: list[str], optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: List of found Subjects, will be an empty list if no subjects are found
+    :rtype: list[Subject]
+    """
     attribute_set = set(attributes + [client.universal_identifier_attr, "name"])
     body = {
         "WsRestGetSubjectsRequest": {

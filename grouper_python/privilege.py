@@ -95,7 +95,7 @@ def get_privileges(
         )
         result = r["WsGetGrouperPrivilegesLiteResult"]
         return [
-            Privilege.from_results(client, priv, result["subjectAttributeNames"])
+            Privilege(client, priv, result["subjectAttributeNames"])
             for priv in result["privilegeResults"]
         ]
     except GrouperSuccessException as err:

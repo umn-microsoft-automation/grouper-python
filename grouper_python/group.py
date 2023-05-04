@@ -32,15 +32,15 @@ def find_group_by_name(
 
     :param group_name: The group name to search for
     :type group_name: str
-    :param client: a
+    :param client: The GrouperClient to use
     :type client: GrouperClient
-    :param stem: _description_, defaults to None
+    :param stem: Optional stem to limit the search to, defaults to None
     :type stem: str | None, optional
-    :param act_as_subject: _description_, defaults to None
+    :param act_as_subject: Optional subject to act as, defaults to None
     :type act_as_subject: Subject | None, optional
-    :raises GrouperStemNotFoundException: _description_
-    :raises GrouperSuccessException: _description_
-    :return: _description_
+    :raises GrouperStemNotFoundException: The specified stem cannot be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: List of found groups, will be an empty list if no groups are found
     :rtype: list[Group]
     """
     from .objects.group import Group
@@ -72,7 +72,7 @@ def find_group_by_name(
             raise err
     if "groupResults" in r["WsFindGroupsResults"]:
         return [
-            Group.from_results(client, grp)
+            Group(client, grp)
             for grp in r["WsFindGroupsResults"]["groupResults"]
         ]
     else:
@@ -111,7 +111,7 @@ def create_groups(
         act_as_subject=act_as_subject,
     )
     return [
-        Group.from_results(client, result["wsGroup"])
+        Group(client, result["wsGroup"])
         for result in r["WsGroupSaveResults"]["results"]
     ]
 
@@ -186,7 +186,7 @@ def get_groups_by_parent(
     )
     if "groupResults" in r["WsFindGroupsResults"]:
         return [
-            Group.from_results(client, grp)
+            Group(client, grp)
             for grp in r["WsFindGroupsResults"]["groupResults"]
         ]
     else:
@@ -198,6 +198,20 @@ def get_group_by_name(
     client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> Group:
+    """Get a group with the given name.
+
+    :param group_name: The name of the group to get
+    :type group_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: The group with the given name
+    :rtype: Group
+    """
     from .objects.group import Group
 
     body = {
@@ -210,4 +224,4 @@ def get_group_by_name(
     r = client._call_grouper("/groups", body, act_as_subject=act_as_subject)
     if "groupResults" not in r["WsFindGroupsResults"]:
         raise GrouperGroupNotFoundException(group_name, r)
-    return Group.from_results(client, r["WsFindGroupsResults"]["groupResults"][0])
+    return Group(client, r["WsFindGroupsResults"]["groupResults"][0])
