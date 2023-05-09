@@ -1,3 +1,12 @@
+"""grouper-python.membership - functions to interact with grouper membership.
+
+These are "helper" functions that most likely will not be called directly.
+Instead, a Client class should be created, then from there use that Client's
+methods to find and create objects, and use those objects' methods.
+These helper functions are used by those objects, but can be called
+directly if needed.
+"""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
@@ -138,6 +147,31 @@ def has_members(
     member_filter: str = "all",
     act_as_subject: Subject | None = None,
 ) -> dict[str, HasMember]:
+    """Determine if the given subjects are members of the given group.
+
+    :param group_name: Name of group to check members
+    :type group_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param subject_identifiers: Subject identifiers to check for membership,
+    defaults to []
+    :type subject_identifiers: list[str], optional
+    :param subject_ids: Subject ids to check for membership,
+    defaults to [], defaults to []
+    :type subject_ids: list[str], optional
+    :param member_filter: Type of mebership to return (all, immediate, effective),
+    defaults to "all"
+    :type member_filter: str, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises ValueError: No subjects were specified
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: A dict with the key being the subject (either identifier or id)
+    and the value being a HasMember enum.
+    :rtype: dict[str, HasMember]
+    """
     from .objects.membership import HasMember
 
     if not subject_identifiers and not subject_ids:
@@ -211,6 +245,28 @@ def add_members_to_group(
     replace_all_existing: str = "F",
     act_as_subject: Subject | None = None,
 ) -> Group:
+    """Add members to a group.
+
+    :param group_name: The group to add members to
+    :type group_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param subject_identifiers: Subject identifiers of members to add, defaults to []
+    :type subject_identifiers: list[str], optional
+    :param subject_ids: Subject ids of members to add, defaults to []
+    :type subject_ids: list[str], optional
+    :param replace_all_existing: Whether to replace existing membership of group,
+    "T" will replace, "F" will only add members, defaults to "F"
+    :type replace_all_existing: str, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperPermissionDenied: Permission denied to complete the operation
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: A Group object representing the group that members were added to
+    :rtype: Group
+    """
     from .objects.group import Group
 
     identifiers_to_add = [{"subjectIdentifier": ident} for ident in subject_identifiers]
@@ -255,6 +311,25 @@ def delete_members_from_group(
     subject_ids: list[str] = [],
     act_as_subject: Subject | None = None,
 ) -> Group:
+    """Remove members from a group.
+
+    :param group_name: The name of the group to remove members from
+    :type group_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param subject_identifiers: Subject identifiers of members to remove, defaults to []
+    :type subject_identifiers: list[str], optional
+    :param subject_ids: Subject ids of members to remove, defaults to []
+    :type subject_ids: list[str], optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperPermissionDenied: Permission denied to complete the operation
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: A Group object representing the group that members were removed from
+    :rtype: Group
+    """
     from .objects.group import Group
 
     identifiers_to_delete = [
@@ -292,7 +367,7 @@ def delete_members_from_group(
         else:  # pragma: no cover
             # We're not sure what exactly has happened here,
             # So raise the original SuccessException
-            raise
+            raise err
     return Group(client, r["WsDeleteMemberResults"]["wsGroup"])
 
 

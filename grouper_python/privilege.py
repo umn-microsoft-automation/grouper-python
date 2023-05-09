@@ -1,3 +1,12 @@
+"""grouper-python.privilege - functions to interact with grouper privileges.
+
+These are "helper" functions that most likely will not be called directly.
+Instead, a Client class should be created, then from there use that Client's
+methods to find and create objects, and use those objects' methods.
+These helper functions are used by those objects, but can be called
+directly if needed.
+"""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING
 

@@ -1,3 +1,12 @@
+"""grouper-python.subject - functions to interact with subject objects.
+
+These are "helper" functions that most likely will not be called directly.
+Instead, a Client class should be created, then from there use that Client's
+methods to find and create objects, and use those objects' methods.
+These helper functions are used by those objects, but can be called
+directly if needed.
+"""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
@@ -16,6 +25,23 @@ def get_groups_for_subject(
     substems: bool = True,
     act_as_subject: Subject | None = None,
 ) -> list[Group]:
+    """Get groups the given subject is a member of.
+
+    :param subject_id: Subject id of subject to get groups
+    :type subject_id: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param stem: Optional stem to limit the search to, defaults to None
+    :type stem: str | None, optional
+    :param substems: Whether to look recursively through substems
+    of the given stem (True), or only one level in the given stem (False),
+    defaults to True
+    :type substems: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :return: List of found groups, will be an empty list if no groups are found
+    :rtype: list[Group]
+    """
     from .objects.group import Group
 
     body: dict[str, Any] = {

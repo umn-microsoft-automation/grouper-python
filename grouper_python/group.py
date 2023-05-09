@@ -191,9 +191,9 @@ def get_groups_by_parent(
     recursive: bool = False,
     act_as_subject: Subject | None = None,
 ) -> list[Group]:
-    """Get Groups within the given stem.
+    """Get Groups within the given parent stem.
 
-    :param parent_name: The parent stem to look in.
+    :param parent_name: The parent stem to look in
     :type parent_name: str
     :param client: The GrouperClient to use
     :type client: GrouperClient

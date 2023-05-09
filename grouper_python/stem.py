@@ -1,3 +1,12 @@
+"""grouper-python.stem - functions to interact with stem objects.
+
+These are "helper" functions that most likely will not be called directly.
+Instead, a Client class should be created, then from there use that Client's
+methods to find and create objects, and use those objects' methods.
+These helper functions are used by those objects, but can be called
+directly if needed.
+"""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
@@ -50,6 +59,20 @@ def get_stems_by_parent(
     recursive: bool = False,
     act_as_subject: Subject | None = None,
 ) -> list[Stem]:
+    """Get Stems within the given parent stem.
+
+    :param parent_name: The parent stem to lookin
+    :type parent_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param recursive: Whether to look recursively through the entire subtree (True),
+    or only one level in the given parent (False), defaults to False
+    :type recursive: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :return: The list of Stems found
+    :rtype: list[Stem]
+    """
     from .objects.stem import Stem
 
     body = {
@@ -78,6 +101,17 @@ def create_stems(
     client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> list[Stem]:
+    """Create stems.
+
+    :param creates: list of stems to create
+    :type creates: list[CreateStem]
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :return: Stem objects representing the created stems
+    :rtype: list[Stem]
+    """
     from .objects.stem import Stem
 
     stems_to_save = [
@@ -104,6 +138,15 @@ def delete_stems(
     client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> None:
+    """Delete the given stems.
+
+    :param stem_names: The names of stems to delete
+    :type stem_names: list[str]
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    """
     stem_lookups = [{"stemName": stem_name} for stem_name in stem_names]
     body = {"WsRestStemDeleteRequest": {"wsStemLookups": stem_lookups}}
     client._call_grouper("/stems", body, act_as_subject=act_as_subject)
