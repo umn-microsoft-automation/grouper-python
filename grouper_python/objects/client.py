@@ -1,4 +1,4 @@
-"""grouper_python.client - Class definition for GrouperClient."""
+"""grouper_python.objects.client - Class definition for GrouperClient."""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
@@ -198,6 +198,19 @@ class GrouperClient:
         method: str = "POST",
         act_as_subject: Subject | None = None,
     ) -> dict[str, Any]:
+        """Call the Grouper API.
+
+        :param path: API url suffix to call
+        :type path: str
+        :param body: body to be sent with API call
+        :type body: dict[str, Any]
+        :param method: HTTP method, defaults to "POST"
+        :type method: str, optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :return: the full payload returned from Grouper
+        :rtype: dict[str, Any]
+        """
         return call_grouper(
             client=self.httpx_client,
             path=path,

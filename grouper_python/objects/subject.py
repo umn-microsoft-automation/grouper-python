@@ -1,4 +1,4 @@
-"""grouper_python.subject - Class definition for Subject."""
+"""grouper_python.objects.subject - Class definition for Subject."""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
@@ -12,6 +12,7 @@ from ..membership import has_members
 from ..privilege import get_privileges
 from dataclasses import dataclass
 from .base import GrouperEntity
+from .exceptions import GrouperSubjectNotFoundException
 
 
 @dataclass(slots=True, eq=False)
@@ -58,15 +59,17 @@ class Subject(GrouperEntity):
         substems: bool = True,
         act_as_subject: Subject | None = None,
     ) -> list[Group]:
-        """Get groups this subject is a member of
+        """Get groups this subject is a member of.
 
-        :param stem: An optional stem to limit the search to, defaults to None
+        :param stem: Optional stem to limit the search to, defaults to None
         :type stem: str | None, optional
-        :param substems: _description_, defaults to True
+        :param substems: Whether to look recursively through substems
+        of the given stem (True), or only one level in the given stem (False),
+        defaults to True
         :type substems: bool, optional
-        :param act_as_subject: _description_, defaults to None
+        :param act_as_subject: Optional subject to act as, defaults to None
         :type act_as_subject: Subject | None, optional
-        :return: _description_
+        :return: List of found groups, will be an empty list if no groups are found
         :rtype: list[Group]
         """
         return get_groups_for_subject(
@@ -83,6 +86,22 @@ class Subject(GrouperEntity):
         member_filter: str = "all",
         act_as_subject: Subject | None = None,
     ) -> bool:
+        """Check if this subject is a member of the given group.
+
+        :param group_name: Name of group to check for membership.
+        :type group_name: str
+        :param member_filter: Type of mebership to check for
+        (all, immediate, effective), defaults to "all"
+        :type member_filter: str, optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :raises GrouperSubjectNotFoundException: This subject cannot be found
+        :raises GrouperGroupNotFoundException: A group with the given name cannot
+        be found
+        :raises GrouperSuccessException: An otherwise unhandled issue with the result
+        :return: If the user is a member of the group (True) or not (False)
+        :rtype: bool
+        """
         from .membership import HasMember
 
         result = has_members(
@@ -97,7 +116,9 @@ class Subject(GrouperEntity):
         elif result[self.id] == HasMember.IS_NOT_MEMBER:
             return False
         else:
-            raise ValueError
+            raise GrouperSubjectNotFoundException(
+                subject_identifier=self.universal_identifier
+            )
 
     def get_privileges_for_this_in_others(
         self,
@@ -108,6 +129,32 @@ class Subject(GrouperEntity):
         attributes: list[str] = [],
         act_as_subject: Subject | None = None,
     ) -> list[Privilege]:
+        """Get privileges this subject has in other objects.
+
+        :param group_name: Group name to limit privileges to,
+        cannot be specified if stem_name is specified, defaults to None
+        :type group_name: str | None, optional
+        :param stem_name: Stem name to limit privileges to,
+        cannot be specified if group_name is specified, defaults to None
+        :type stem_name: str | None, optional
+        :param privilege_name: Name of privilege to get, defaults to None
+        :type privilege_name: str | None, optional
+        :param privilege_type: Type of privilege to get, defaults to None
+        :type privilege_type: str | None, optional
+        :param attributes: Additional attributes to retrieve for the Subjects,
+        defaults to []
+        :type attributes: list[str], optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :raises ValueError: An invalid combination of parameters was given
+        :raises GrouperGroupNotFoundException: A group with the given name cannot
+        be found
+        :raises GrouperStemNotFoundException: A stem with the given name cannot be found
+        :raises GrouperSuccessException: An otherwise unhandled issue with the result
+        :return: A list of retreived privileges for this subject
+        satisfying any given constraints
+        :rtype: list[Privilege]
+        """
         return get_privileges(
             client=self.client,
             subject_id=self.id,

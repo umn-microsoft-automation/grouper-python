@@ -1,4 +1,4 @@
-"""grouper_python.subject - Class definition for Subject."""
+"""grouper_python.objects.subject - Class definition for Group and related objects."""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
@@ -186,7 +186,7 @@ class Group(Subject):
         attributes: list[str] = [],
         act_as_subject: Subject | None = None,
     ) -> list[Privilege]:
-        """Get privileges on this group
+        """Get privileges on this Group.
 
         :param subject_id: Subject Id to limit retreived permissions to,
         cannot be specified if subject_identifer is specified, defaults to None
@@ -201,7 +201,7 @@ class Group(Subject):
         :type attributes: list[str], optional
         :param act_as_subject: Optional subject to act as, defaults to None
         :type act_as_subject: Subject | None, optional
-        :return: List of retreived privileges on this group
+        :return: List of retreived privileges on this Group
         satisfying the given constraints
         :rtype: list[Privilege]
         """
@@ -222,6 +222,21 @@ class Group(Subject):
         replace_all_existing: str = "F",
         act_as_subject: Subject | None = None,
     ) -> None:
+        """Add members to this group.
+
+        :param subject_identifiers: Subject identifiers of members to add,
+        defaults to []
+        :type subject_identifiers: list[str], optional
+        :param subject_ids: Subject ids of members to add, defaults to []
+        :type subject_ids: list[str], optional
+        :param replace_all_existing: Whether to replace existing membership of group,
+        "T" will replace, "F" will only add members, defaults to "F"
+        :type replace_all_existing: str, optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :raises GrouperPermissionDenied: Permission denied to complete the operation
+        :raises GrouperSuccessException: An otherwise unhandled issue with the result
+        """
         add_members_to_group(
             group_name=self.name,
             client=self.client,
@@ -237,6 +252,18 @@ class Group(Subject):
         subject_ids: list[str] = [],
         act_as_subject: Subject | None = None,
     ) -> None:
+        """Remove members from this group.
+
+        :param subject_identifiers: Subject identifiers of members to remove,
+        defaults to []
+        :type subject_identifiers: list[str], optional
+        :param subject_ids: Subject ids of members to remove, defaults to []
+        :type subject_ids: list[str], optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :raises GrouperPermissionDenied: Permission denied to complete the operation
+        :raises GrouperSuccessException: An otherwise unhandled issue with the result
+        """
         delete_members_from_group(
             group_name=self.name,
             client=self.client,
@@ -252,6 +279,22 @@ class Group(Subject):
         member_filter: str = "all",
         act_as_subject: Subject | None = None,
     ) -> dict[str, HasMember]:
+        """Determine if the given subjects are members of this group.
+
+        :param subject_identifiers:Subject identifiers to check for membership,
+        defaults to []
+        :type subject_identifiers: list[str], optional
+        :param subject_ids: Subject ids to check for membership, defaults to []
+        :type subject_ids: list[str], optional
+        :param member_filter: Type of mebership to return (all, immediate, effective),
+        defaults to "all"
+        :type member_filter: str, optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :return: A dict with the key being the subject (either identifier or id)
+        and the value being a HasMember enum.
+        :rtype: dict[str, HasMember]
+        """
         return has_members(
             group_name=self.name,
             client=self.client,
@@ -265,6 +308,13 @@ class Group(Subject):
         self,
         act_as_subject: Subject | None = None,
     ) -> None:
+        """Delete this group in Grouper.
+
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :raises GrouperPermissionDenied: Permission denied to complete the operation
+        :raises GrouperSuccessException: An otherwise unhandled issue with the result
+        """
         delete_groups(
             group_names=[self.name],
             client=self.client,
@@ -274,6 +324,18 @@ class Group(Subject):
 
 @dataclass
 class CreateGroup:
+    """Class representing all data needed to create a new Grouper group.
+
+    :param name: Full name (ID path) of the group to create
+    :type name: str
+    :param display_extension: Display extension (display name) of the group to create
+    :type display_extension: str
+    :param description: Description of the group to create
+    :type description: str
+    :param detail: detail of the group to create, defaults to None
+    :type detail: dict[str, Any] | None, optional
+    """
+
     name: str
     display_extension: str
     description: str

@@ -1,7 +1,7 @@
+"""grouper_python.objects.person - Class definition for Person."""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
-
-# from grouper_python.objects.client import GrouperClient
 
 if TYPE_CHECKING:  # pragma: no cover
     from .client import GrouperClient
@@ -11,6 +11,16 @@ from dataclasses import dataclass
 
 @dataclass(eq=False, slots=True)
 class Person(Subject):
+    """Person object representing a Grouper person.
+
+    :param client: A GrouperClient object containing connection information
+    :type client: GrouperClient
+    :param person_body: Body of the person as returned by the Grouper API
+    :type person_body: dict[str, Any]
+    :param subject_attr_names: Subject attribute names for the given person body
+    :type subject_attr_names: list[str]
+    """
+
     attributes: dict[str, str]
 
     def __init__(
@@ -19,6 +29,7 @@ class Person(Subject):
         person_body: dict[str, Any],
         subject_attr_names: list[str],
     ) -> None:
+        """Construct a Person."""
         attrs = {
             subject_attr_names[i]: person_body["attributeValues"][i]
             for i in range(len(subject_attr_names))

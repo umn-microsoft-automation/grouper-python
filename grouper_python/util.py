@@ -98,7 +98,7 @@ def resolve_subject(
     :type subject_body: dict[str, Any]
     :param client: The GrouperClient to use
     :type client: GrouperClient
-    :param subject_attr_names: subject attribute names for the given subject body
+    :param subject_attr_names: Subject attribute names for the given subject body
     :type subject_attr_names: list[str]
     :param resolve_group: Whether to resolve the subject to a Group object if it is
     a group. Resolving will require an additional API call.

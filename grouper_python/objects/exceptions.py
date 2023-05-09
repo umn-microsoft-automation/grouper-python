@@ -1,4 +1,4 @@
-"""Exceptions for the grouper_python package."""
+"""grouper_python.objects.exceptions - Exceptions for the grouper_python package."""
 
 from typing import Any
 
@@ -36,7 +36,9 @@ class GrouperPermissionDenied(GrouperException):
 class GrouperEntityNotFoundException(GrouperException):
     """The Grouper Entity was not found."""
 
-    def __init__(self, entity_identifier: str, grouper_result: dict[str, Any]) -> None:
+    def __init__(
+        self, entity_identifier: str, grouper_result: dict[str, Any] = {}
+    ) -> None:
         """Initialize Exception with entity name and Grouper result body."""
         self.entity_identifier = entity_identifier
         self.grouper_result = grouper_result
@@ -46,7 +48,9 @@ class GrouperEntityNotFoundException(GrouperException):
 class GrouperSubjectNotFoundException(GrouperEntityNotFoundException):
     """The Grouper Subject was not found."""
 
-    def __init__(self, subject_identifier: str, grouper_result: dict[str, Any]) -> None:
+    def __init__(
+        self, subject_identifier: str, grouper_result: dict[str, Any] = {}
+    ) -> None:
         """Initialize Exception with subject identifier and Grouper result body."""
         self.subject_identifier = subject_identifier
         super().__init__(subject_identifier, grouper_result)
@@ -55,7 +59,7 @@ class GrouperSubjectNotFoundException(GrouperEntityNotFoundException):
 class GrouperGroupNotFoundException(GrouperEntityNotFoundException):
     """The Grouper Group was not found."""
 
-    def __init__(self, group_name: str, grouper_result: dict[str, Any]) -> None:
+    def __init__(self, group_name: str, grouper_result: dict[str, Any] = {}) -> None:
         """Initialize Exception with group name and Grouper result body."""
         self.group_name = group_name
         super().__init__(group_name, grouper_result)
@@ -64,7 +68,7 @@ class GrouperGroupNotFoundException(GrouperEntityNotFoundException):
 class GrouperStemNotFoundException(GrouperEntityNotFoundException):
     """The Grouper Stem was not found."""
 
-    def __init__(self, stem_name: str, grouper_result: dict[str, Any]) -> None:
+    def __init__(self, stem_name: str, grouper_result: dict[str, Any] = {}) -> None:
         """Initialize Exception with stem name and Grouper result body."""
         self.stem_name = stem_name
         super().__init__(stem_name, grouper_result)

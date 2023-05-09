@@ -1,3 +1,5 @@
+"""grouper_python.objects.privilege - Class definition for Privilege."""
+
 from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 
@@ -12,6 +14,19 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class Privilege(GrouperBase):
+    """Privilege object representing a Grouper privilege.
+
+    :param client: A GrouperClient object containing connection information
+    :type client: GrouperClient
+    :param privilege_body: Body of the privilege as returned by the Grouper API
+    :type privilege_body: dict[str, Any]
+    :param subject_attr_names: Subject attribute names to correspond with
+    attribute values from the subject_body, defaults to []
+    :type subject_attr_names: list[str], optional
+    :raises ValueError: An unknown/unsupported target for the privilege was returned
+    by Grouper
+    """
+
     stem: Stem | None
     group: Group | None
     target: Stem | Group
@@ -28,6 +43,7 @@ class Privilege(GrouperBase):
         privilege_body: dict[str, Any],
         subject_attr_names: list[str] = [],
     ) -> None:
+        """Construct a Privilege."""
         self.stem = (
             Stem(client, privilege_body["wsStem"])
             if "wsStem" in privilege_body
