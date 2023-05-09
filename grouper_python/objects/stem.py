@@ -11,23 +11,30 @@ from ..stem import create_stems, get_stems_by_parent, delete_stems
 from ..group import create_groups, get_groups_by_parent
 from .client import GrouperClient
 from dataclasses import dataclass
+from .base import GrouperEntity
 
 
-class Stem:
+@dataclass(slots=True, eq=False)
+class Stem(GrouperEntity):
+    extension: str
+    displayName: str
+    uuid: str
+    displayExtension: str
+    idIndex: str
+
     def __init__(
         self,
         client: GrouperClient,
         stem_body: dict[str, Any],
-        subject_attr_names: list[str] = [],
     ) -> None:
-        self.id: str = stem_body["uuid"]
-        self.description: str = stem_body.get("description", "")
-        self.extension: str = stem_body["extension"]
-        self.displayName: str = stem_body["displayName"]
-        self.uuid: str = stem_body["uuid"]
-        self.displayExtension: str = stem_body["displayExtension"]
-        self.name: str = stem_body["name"]
-        self.idIndex: str = stem_body["idIndex"]
+        self.id = stem_body["uuid"]
+        self.description = stem_body.get("description", "")
+        self.extension = stem_body["extension"]
+        self.displayName = stem_body["displayName"]
+        self.uuid = stem_body["uuid"]
+        self.displayExtension = stem_body["displayExtension"]
+        self.name = stem_body["name"]
+        self.idIndex = stem_body["idIndex"]
         self.client = client
 
     def create_privilege_on_this(

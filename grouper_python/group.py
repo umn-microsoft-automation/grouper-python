@@ -84,6 +84,17 @@ def create_groups(
     client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> list[Group]:
+    """Create groups.
+
+    :param groups: List of groups to create
+    :type groups: list[CreateGroup]
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :return: Group objects representing the created groups
+    :rtype: list[Group]
+    """
     from .objects.group import Group
 
     groups_to_save = []
@@ -121,6 +132,19 @@ def delete_groups(
     client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> None:
+    """Delete the given groups.
+
+    :param group_names: The names of groups to delete
+    :type group_names: list[str]
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperPermissionDenied: Permission denied to complete the operation
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    """
     group_lookup = [{"groupName": group} for group in group_names]
     body = {
         "WsRestGroupDeleteRequest": {
@@ -167,6 +191,21 @@ def get_groups_by_parent(
     recursive: bool = False,
     act_as_subject: Subject | None = None,
 ) -> list[Group]:
+    """Get Groups within the given stem.
+
+    :param parent_name: The parent stem to look in.
+    :type parent_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param recursive: Whether to look recursively through the entire subtree (True),
+    or only one level in the given parent (False), defaults to False
+    :type recursive: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: The list of Groups found
+    :rtype: list[Group]
+    """
     from .objects.group import Group
 
     body = {

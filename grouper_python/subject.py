@@ -107,7 +107,7 @@ def find_subjects(
     :param client: The GrouperClient to use
     :type client: GrouperClient
     :param resolve_groups: Whether to resolve subjects that are groups into Group
-    objects, which will require an additional API, defaults to True
+    objects, which will require an additional API call per group, defaults to True
     :type resolve_groups: bool, optional
     :param attributes: Additional attributes to return for the Subject,
     defaults to []

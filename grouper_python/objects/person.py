@@ -6,9 +6,12 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:  # pragma: no cover
     from .client import GrouperClient
 from .subject import Subject
+from dataclasses import dataclass
 
 
+@dataclass(eq=False, slots=True)
 class Person(Subject):
+    attributes: dict[str, str]
 
     def __init__(
         self,

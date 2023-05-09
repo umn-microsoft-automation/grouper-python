@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 
-from grouper_python import GrouperClient, Group, Stem, Person, Subject
+from grouper_python import GrouperClient
+from grouper_python.objects import Group, Stem, Person, Subject
 import pytest
 from . import data
 

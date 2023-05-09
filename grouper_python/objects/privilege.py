@@ -6,9 +6,22 @@ if TYPE_CHECKING:  # pragma: no cover
 from .subject import Subject
 from .group import Group
 from .stem import Stem
+from .base import GrouperBase
+from dataclasses import dataclass
 
 
-class Privilege:
+@dataclass(slots=True)
+class Privilege(GrouperBase):
+    stem: Stem | None
+    group: Group | None
+    target: Stem | Group
+    revokable: str
+    owner_subject: Subject
+    allowed: str
+    subject: Subject
+    privilege_name: str
+    privilege_type: str
+
     def __init__(
         self,
         client: GrouperClient,
@@ -25,24 +38,23 @@ class Privilege:
             if "wsGroup" in privilege_body
             else None
         )
-        self.target: Stem | Group
         if self.stem:
             self.target = self.stem
         elif self.group:
             self.target = self.group
         else:  # pragma: no cover
             raise ValueError("Unknown target for privilege", privilege_body)
-        self.revokable: str = privilege_body["revokable"]
+        self.revokable = privilege_body["revokable"]
         self.owner_subject = Subject(
             client=client,
             subject_body=privilege_body["ownerSubject"],
             subject_attr_names=subject_attr_names,
         )
-        self.allowed: str = privilege_body["allowed"]
+        self.allowed = privilege_body["allowed"]
         self.subject = Subject(
             client=client,
             subject_body=privilege_body["wsSubject"],
             subject_attr_names=subject_attr_names,
         )
-        self.privilege_type: str = privilege_body["privilegeType"]
-        self.privilege_name: str = privilege_body["privilegeName"]
+        self.privilege_type = privilege_body["privilegeType"]
+        self.privilege_name = privilege_body["privilegeName"]

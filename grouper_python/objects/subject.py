@@ -1,3 +1,5 @@
+"""grouper_python.subject - Class definition for Subject."""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
@@ -8,15 +10,33 @@ if TYPE_CHECKING:  # pragma: no cover
 from ..subject import get_groups_for_subject
 from ..membership import has_members
 from ..privilege import get_privileges
+from dataclasses import dataclass
+from .base import GrouperEntity
 
 
-class Subject:
+@dataclass(slots=True, eq=False)
+class Subject(GrouperEntity):
+    """Subject object representing a Grouper subject.
+
+    :param client: A GrouperClient object containing connection information
+    :type client: GrouperClient
+    :param subject_body: Body of the subject as returned by the Grouper API
+    :type subject_body: dict[str, Any]
+    :param subject_attr_names: Subject attribute names to correspond with
+    attribute values from the subject_body
+    :type subject_attr_names: list[str]
+    """
+
+    universal_identifier: str
+    sourceId: str
+
     def __init__(
         self,
         client: GrouperClient,
         subject_body: dict[str, Any],
         subject_attr_names: list[str],
     ) -> None:
+        """Construct a Subject."""
         attrs = {
             subject_attr_names[i]: subject_body["attributeValues"][i]
             for i in range(len(subject_attr_names))
@@ -25,20 +45,12 @@ class Subject:
             universal_identifier_attr = "name"
         else:
             universal_identifier_attr = client.universal_identifier_attr
-        self.id: str = subject_body["id"]
-        self.description: str = attrs.get("description", "")
-        self.universal_identifier: str = attrs[universal_identifier_attr]
-        self.sourceId: str = subject_body["sourceId"]
-        self.name: str = subject_body["name"]
+        self.id = subject_body["id"]
+        self.description = attrs.get("description", "")
+        self.universal_identifier = attrs[universal_identifier_attr]
+        self.sourceId = subject_body["sourceId"]
+        self.name = subject_body["name"]
         self.client = client
-
-    def __hash__(self) -> int:
-        return hash(self.id)
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Subject):
-            return NotImplemented
-        return self.id == other.id
 
     def get_groups(
         self,
@@ -46,6 +58,17 @@ class Subject:
         substems: bool = True,
         act_as_subject: Subject | None = None,
     ) -> list[Group]:
+        """Get groups this subject is a member of
+
+        :param stem: An optional stem to limit the search to, defaults to None
+        :type stem: str | None, optional
+        :param substems: _description_, defaults to True
+        :type substems: bool, optional
+        :param act_as_subject: _description_, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :return: _description_
+        :rtype: list[Group]
+        """
         return get_groups_for_subject(
             self.id,
             self.client,
@@ -76,7 +99,7 @@ class Subject:
         else:
             raise ValueError
 
-    def get_privileges_for_this(
+    def get_privileges_for_this_in_others(
         self,
         group_name: str | None = None,
         stem_name: str | None = None,

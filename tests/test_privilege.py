@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from grouper_python import Subject, Group, GrouperClient
+    from grouper_python import GrouperClient
+    from grouper_python.objects import Subject, Group
 import respx
 from httpx import Response
 from . import data
@@ -17,7 +18,7 @@ from grouper_python.objects.exceptions import (
 
 def test_get_privilege_both_group_and_stem(grouper_subject: Subject):
     with pytest.raises(ValueError) as excinfo:
-        grouper_subject.get_privileges_for_this(
+        grouper_subject.get_privileges_for_this_in_others(
             group_name="test:GROUP1", stem_name="test:child"
         )
 
@@ -69,7 +70,7 @@ def test_get_privilege_with_privilege_type(grouper_subject: Subject):
         json=data.get_priv_for_group_with_privilege_type_request,
     ).mock(return_value=Response(200, json=data.get_priv_for_group_result))
 
-    privs = grouper_subject.get_privileges_for_this(privilege_type="access")
+    privs = grouper_subject.get_privileges_for_this_in_others(privilege_type="access")
 
     assert len(privs) == 1
 
@@ -117,7 +118,7 @@ def test_get_privilege_group_not_found(grouper_subject: Subject):
     )
 
     with pytest.raises(GrouperGroupNotFoundException) as excinfo:
-        grouper_subject.get_privileges_for_this(group_name="test:GROUP1")
+        grouper_subject.get_privileges_for_this_in_others(group_name="test:GROUP1")
 
     assert excinfo.value.group_name == "test:GROUP1"
 
@@ -129,6 +130,6 @@ def test_get_privilege_stem_not_found(grouper_subject: Subject):
     )
 
     with pytest.raises(GrouperStemNotFoundException) as excinfo:
-        grouper_subject.get_privileges_for_this(stem_name="invalid")
+        grouper_subject.get_privileges_for_this_in_others(stem_name="invalid")
 
     assert excinfo.value.stem_name == "invalid"

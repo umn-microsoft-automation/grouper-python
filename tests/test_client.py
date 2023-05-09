@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from grouper_python import GrouperClient
-from grouper_python import Group, Stem, Subject, Person
+from grouper_python.objects import Group, Stem, Subject, Person
 from . import data
 import pytest
 import respx

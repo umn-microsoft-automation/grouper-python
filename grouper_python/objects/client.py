@@ -145,6 +145,10 @@ class GrouperClient:
         :type attributes: list[str], optional
         :param act_as_subject:  Optional subject to act as, defaults to None
         :type act_as_subject: Subject | None, optional
+        :raises GrouperSubjectNotFoundException: A subject cannot be found
+        with the given identifier
+        :raises GrouperSuccessException: An otherwise unhandled issue with the result
+        :return: The subject with the given name
         :return: The subject with the given name
         :rtype: Subject
         """
@@ -168,7 +172,7 @@ class GrouperClient:
         :param search_string: Free-form string tos earch for
         :type search_string: str
         :param resolve_groups: Whether to resolve subjects that are groups into Group
-        objects, which will require an additional API, defaults to True
+        objects, which will require an additional API call, defaults to True
         :type resolve_groups: bool, optional
         :param attributes: Additional attributes to return for the Subject,
         defaults to []

@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from grouper_python import GrouperClient, Person
+    from grouper_python import GrouperClient
+    from grouper_python.objects import Person
 import respx
 from httpx import Response
 from . import data

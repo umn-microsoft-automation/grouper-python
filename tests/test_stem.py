@@ -1,5 +1,5 @@
 from __future__ import annotations
-from grouper_python import Stem, Group
+from grouper_python.objects import Stem, Group
 from . import data
 import respx
 from httpx import Response

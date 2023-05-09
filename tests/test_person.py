@@ -2,8 +2,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from grouper_python import Person
-from grouper_python import Group
+    from grouper_python.objects import Person
+from grouper_python.objects import Group
 from . import data
 import pytest
 import respx

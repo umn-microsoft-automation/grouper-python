@@ -22,6 +22,32 @@ def get_memberships_for_groups(
     resolve_groups: bool = True,
     act_as_subject: Subject | None = None,
 ) -> dict[Group, list[Membership]]:
+    """Get memberships for the given groups.
+
+    Note that a "membership" includes more detail than a "member".
+
+    :param group_names: Group names to retreive memberships for
+    :type group_names: list[str]
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param attributes: Additional attributes to retrieve for the Subjects,
+    defaults to []
+    :type attributes: list[str], optional
+    :param member_filter: Type of mebership to return (all, immediate, effective),
+    defaults to "all"
+    :type member_filter: str, optional
+    :param resolve_groups: Whether to resolve subjects that are groups into Group
+    objects, which will require an additional API call per group, defaults to True
+    :type resolve_groups: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: A dictionary with Groups as the keys
+    and those groups' memberships list as the value
+    :rtype: dict[Group, list[Membership]]
+    """
     from .objects.membership import Membership, MembershipType, MemberType
     from .objects.group import Group
 
@@ -278,6 +304,30 @@ def get_members_for_groups(
     resolve_groups: bool = True,
     act_as_subject: Subject | None = None,
 ) -> dict[Group, list[Subject]]:
+    """Get members for the given groups.
+
+    :param group_names: Group names to retreive members for
+    :type group_names: list[str]
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param attributes: Additional attributes to retrieve for the Subjects,
+    defaults to []
+    :type attributes: list[str], optional
+    :param member_filter: Type of mebership to return (all, immediate, effective),
+    defaults to "all"
+    :type member_filter: str, optional
+    :param resolve_groups: Whether to resolve subjects that are groups into Group
+    objects, which will require an additional API call per group, defaults to True
+    :type resolve_groups: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: A dictionary with Groups as the keys
+    and those groups' member list as the value
+    :rtype: dict[Group, list[Subject]]
+    """
     from .objects.group import Group
 
     group_lookup = [{"groupName": group} for group in group_names]
