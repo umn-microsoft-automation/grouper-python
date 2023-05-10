@@ -1,12 +1,14 @@
+"""grouper_python.objects.subject - Class definition for Group and related objects."""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover
     from .membership import Membership, HasMember
-    from .client import Client
+    from .client import GrouperClient
     from .privilege import Privilege
 from .subject import Subject
-from pydantic import BaseModel
+from dataclasses import dataclass
 from ..membership import (
     get_members_for_groups,
     get_memberships_for_groups,
@@ -18,7 +20,16 @@ from ..privilege import assign_privilege, get_privileges
 from ..group import delete_groups
 
 
+@dataclass(slots=True, eq=False)
 class Group(Subject):
+    """Group object representing a Grouper group.
+
+    :param client: A GrouperClient object containing connection information
+    :type client: GrouperClient
+    :param group_body: Body of the group as returned by the Grouper API
+    :type group_body: dict[str, Any]
+    """
+
     extension: str
     displayName: str
     uuid: str
@@ -28,29 +39,26 @@ class Group(Subject):
     idIndex: str
     detail: dict[str, Any] | None
 
-    @classmethod
-    def from_results(
-        cls: type[Group],
-        client: Client,
+    def __init__(
+        self,
+        client: GrouperClient,
         group_body: dict[str, Any],
-        subject_attr_names: list[str] = [],
-    ) -> Group:
-        return cls(
-            id=group_body["uuid"],
-            description=group_body.get("description", ""),
-            universal_identifier=group_body["name"],
-            sourceId="g:gsa",
-            name=group_body["name"],
-            extension=group_body["extension"],
-            displayName=group_body["displayName"],
-            uuid=group_body["uuid"],
-            enabled=group_body["enabled"],
-            displayExtension=group_body["displayExtension"],
-            typeOfGroup=group_body["typeOfGroup"],
-            idIndex=group_body["idIndex"],
-            detail=group_body.get("detail"),
-            client=client,
-        )
+    ) -> None:
+        """Construct a Group."""
+        self.id = group_body["uuid"]
+        self.description = group_body.get("description", "")
+        self.universal_identifier = group_body["name"]
+        self.sourceId = "g:gsa"
+        self.name = group_body["name"]
+        self.extension = group_body["extension"]
+        self.displayName = group_body["displayName"]
+        self.uuid = group_body["uuid"]
+        self.enabled = group_body["enabled"]
+        self.displayExtension = group_body["displayExtension"]
+        self.typeOfGroup = group_body["typeOfGroup"]
+        self.idIndex = group_body["idIndex"]
+        self.detail = group_body.get("detail")
+        self.client = client
 
     def get_members(
         self,
@@ -59,6 +67,22 @@ class Group(Subject):
         resolve_groups: bool = True,
         act_as_subject: Subject | None = None,
     ) -> list[Subject]:
+        """Get members for this Group.
+
+        :param attributes: Additional attributes to retrieve for the Subjects,
+        defaults to []
+        :type attributes: list[str], optional
+        :param member_filter: Type of mebership to return (all, immediate, effective),
+        defaults to "all"
+        :type member_filter: str, optional
+        :param resolve_groups: Whether to resolve subjects that are groups into Group
+        objects, which will require an additional API call per group, defaults to True
+        :type resolve_groups: bool, optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :return: List of members of this group
+        :rtype: list[Subject]
+        """
         members = get_members_for_groups(
             group_names=[self.name],
             client=self.client,
@@ -76,6 +100,24 @@ class Group(Subject):
         resolve_groups: bool = True,
         act_as_subject: Subject | None = None,
     ) -> list[Membership]:
+        """Get memberships for this group.
+
+        Note that a "membership" includes more detail than a "member".
+
+        :param attributes: Additional attributes to retrieve for the Subjects,
+        defaults to []
+        :type attributes: list[str], optional
+        :param member_filter: Type of mebership to return (all, immediate, effective),
+        defaults to "all"
+        :type member_filter: str, optional
+        :param resolve_groups: Whether to resolve subjects that are groups into Group
+        objects, which will require an additional API call per group, defaults to True
+        :type resolve_groups: bool, optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :return: List of memberships for this group
+        :rtype: list[Membership]
+        """
         memberships = get_memberships_for_groups(
             group_names=[self.name],
             client=self.client,
@@ -92,6 +134,15 @@ class Group(Subject):
         privilege_name: str,
         act_as_subject: Subject | None = None,
     ) -> None:
+        """Create a privilege on this Group.
+
+        :param entity_identifier: Identifier of the entity to receive the permission
+        :type entity_identifier: str
+        :param privilege_name: Name of the privilege to assign
+        :type privilege_name: str
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        """
         assign_privilege(
             target=self.name,
             target_type="group",
@@ -108,6 +159,15 @@ class Group(Subject):
         privilege_name: str,
         act_as_subject: Subject | None = None,
     ) -> None:
+        """Delete a privilege on this Group.
+
+        :param entity_identifier: Identifier of the entity to remove permission for
+        :type entity_identifier: str
+        :param privilege_name: Name of the privilege to delete
+        :type privilege_name: str
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        """
         assign_privilege(
             target=self.name,
             target_type="group",
@@ -126,6 +186,25 @@ class Group(Subject):
         attributes: list[str] = [],
         act_as_subject: Subject | None = None,
     ) -> list[Privilege]:
+        """Get privileges on this Group.
+
+        :param subject_id: Subject Id to limit retreived permissions to,
+        cannot be specified if subject_identifer is specified, defaults to None
+        :type subject_id: str | None, optional
+        :param subject_identifier: Subject Identifer to limit retreived permissions to,
+        cannot be specified if subject_id is specified, defaults to None
+        :type subject_identifier: str | None, optional
+        :param privilege_name: Name of privilege to get, defaults to None
+        :type privilege_name: str | None, optional
+        :param attributes: Additional attributes to retrieve for the Subjects,
+        defaults to []
+        :type attributes: list[str], optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :return: List of retreived privileges on this Group
+        satisfying the given constraints
+        :rtype: list[Privilege]
+        """
         return get_privileges(
             client=self.client,
             subject_id=subject_id,
@@ -143,6 +222,21 @@ class Group(Subject):
         replace_all_existing: str = "F",
         act_as_subject: Subject | None = None,
     ) -> None:
+        """Add members to this group.
+
+        :param subject_identifiers: Subject identifiers of members to add,
+        defaults to []
+        :type subject_identifiers: list[str], optional
+        :param subject_ids: Subject ids of members to add, defaults to []
+        :type subject_ids: list[str], optional
+        :param replace_all_existing: Whether to replace existing membership of group,
+        "T" will replace, "F" will only add members, defaults to "F"
+        :type replace_all_existing: str, optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :raises GrouperPermissionDenied: Permission denied to complete the operation
+        :raises GrouperSuccessException: An otherwise unhandled issue with the result
+        """
         add_members_to_group(
             group_name=self.name,
             client=self.client,
@@ -158,6 +252,18 @@ class Group(Subject):
         subject_ids: list[str] = [],
         act_as_subject: Subject | None = None,
     ) -> None:
+        """Remove members from this group.
+
+        :param subject_identifiers: Subject identifiers of members to remove,
+        defaults to []
+        :type subject_identifiers: list[str], optional
+        :param subject_ids: Subject ids of members to remove, defaults to []
+        :type subject_ids: list[str], optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :raises GrouperPermissionDenied: Permission denied to complete the operation
+        :raises GrouperSuccessException: An otherwise unhandled issue with the result
+        """
         delete_members_from_group(
             group_name=self.name,
             client=self.client,
@@ -173,6 +279,22 @@ class Group(Subject):
         member_filter: str = "all",
         act_as_subject: Subject | None = None,
     ) -> dict[str, HasMember]:
+        """Determine if the given subjects are members of this group.
+
+        :param subject_identifiers:Subject identifiers to check for membership,
+        defaults to []
+        :type subject_identifiers: list[str], optional
+        :param subject_ids: Subject ids to check for membership, defaults to []
+        :type subject_ids: list[str], optional
+        :param member_filter: Type of mebership to return (all, immediate, effective),
+        defaults to "all"
+        :type member_filter: str, optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :return: A dict with the key being the subject (either identifier or id)
+        and the value being a HasMember enum.
+        :rtype: dict[str, HasMember]
+        """
         return has_members(
             group_name=self.name,
             client=self.client,
@@ -186,6 +308,13 @@ class Group(Subject):
         self,
         act_as_subject: Subject | None = None,
     ) -> None:
+        """Delete this group in Grouper.
+
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :raises GrouperPermissionDenied: Permission denied to complete the operation
+        :raises GrouperSuccessException: An otherwise unhandled issue with the result
+        """
         delete_groups(
             group_names=[self.name],
             client=self.client,
@@ -193,7 +322,20 @@ class Group(Subject):
         )
 
 
-class CreateGroup(BaseModel):
+@dataclass
+class CreateGroup:
+    """Class representing all data needed to create a new Grouper group.
+
+    :param name: Full name (ID path) of the group to create
+    :type name: str
+    :param display_extension: Display extension (display name) of the group to create
+    :type display_extension: str
+    :param description: Description of the group to create
+    :type description: str
+    :param detail: detail of the group to create, defaults to None
+    :type detail: dict[str, Any] | None, optional
+    """
+
     name: str
     display_extension: str
     description: str

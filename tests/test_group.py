@@ -5,7 +5,7 @@ from grouper_python.objects.exceptions import (
     GrouperPermissionDenied,
     GrouperGroupNotFoundException,
 )
-from grouper_python import Person, Group, Subject
+from grouper_python.objects import Person, Group, Subject
 from . import data
 import pytest
 import respx

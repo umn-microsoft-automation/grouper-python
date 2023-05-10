@@ -1,9 +1,18 @@
+"""grouper-python.membership - functions to interact with grouper membership.
+
+These are "helper" functions that most likely will not be called directly.
+Instead, a GrouperClient class should be created, then from there use that
+GrouperClient's methods to find and create objects, and use those objects' methods.
+These helper functions are used by those objects, but can be called
+directly if needed.
+"""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
     from .objects.group import Group
-    from .objects.client import Client
+    from .objects.client import GrouperClient
     from .objects.membership import Membership, HasMember
     from .objects.subject import Subject
 from .objects.exceptions import (
@@ -16,12 +25,38 @@ from .util import resolve_subject
 
 def get_memberships_for_groups(
     group_names: list[str],
-    client: Client,
+    client: GrouperClient,
     attributes: list[str] = [],
     member_filter: str = "all",
     resolve_groups: bool = True,
     act_as_subject: Subject | None = None,
 ) -> dict[Group, list[Membership]]:
+    """Get memberships for the given groups.
+
+    Note that a "membership" includes more detail than a "member".
+
+    :param group_names: Group names to retreive memberships for
+    :type group_names: list[str]
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param attributes: Additional attributes to retrieve for the Subjects,
+    defaults to []
+    :type attributes: list[str], optional
+    :param member_filter: Type of mebership to return (all, immediate, effective),
+    defaults to "all"
+    :type member_filter: str, optional
+    :param resolve_groups: Whether to resolve subjects that are groups into Group
+    objects, which will require an additional API call per group, defaults to True
+    :type resolve_groups: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: A dictionary with Groups as the keys
+    and those groups' memberships list as the value
+    :rtype: dict[Group, list[Membership]]
+    """
     from .objects.membership import Membership, MembershipType, MemberType
     from .objects.group import Group
 
@@ -71,7 +106,7 @@ def get_memberships_for_groups(
     ws_subjects = r["WsGetMembershipsResults"].get("wsSubjects", [])
     subjects = {ws_subject["id"]: ws_subject for ws_subject in ws_subjects}
     groups = {
-        ws_group["uuid"]: Group.from_results(client, ws_group) for ws_group in ws_groups
+        ws_group["uuid"]: Group(client, ws_group) for ws_group in ws_groups
     }
     subject_attr_names = r["WsGetMembershipsResults"].get("subjectAttributeNames", [])
     r_dict: dict[Group, list[Membership]] = {group: [] for group in groups.values()}
@@ -106,12 +141,37 @@ def get_memberships_for_groups(
 
 def has_members(
     group_name: str,
-    client: Client,
+    client: GrouperClient,
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
     member_filter: str = "all",
     act_as_subject: Subject | None = None,
 ) -> dict[str, HasMember]:
+    """Determine if the given subjects are members of the given group.
+
+    :param group_name: Name of group to check members
+    :type group_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param subject_identifiers: Subject identifiers to check for membership,
+    defaults to []
+    :type subject_identifiers: list[str], optional
+    :param subject_ids: Subject ids to check for membership,
+    defaults to [], defaults to []
+    :type subject_ids: list[str], optional
+    :param member_filter: Type of mebership to return (all, immediate, effective),
+    defaults to "all"
+    :type member_filter: str, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises ValueError: No subjects were specified
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: A dict with the key being the subject (either identifier or id)
+    and the value being a HasMember enum.
+    :rtype: dict[str, HasMember]
+    """
     from .objects.membership import HasMember
 
     if not subject_identifiers and not subject_ids:
@@ -179,12 +239,34 @@ def has_members(
 
 def add_members_to_group(
     group_name: str,
-    client: Client,
+    client: GrouperClient,
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
     replace_all_existing: str = "F",
     act_as_subject: Subject | None = None,
 ) -> Group:
+    """Add members to a group.
+
+    :param group_name: The group to add members to
+    :type group_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param subject_identifiers: Subject identifiers of members to add, defaults to []
+    :type subject_identifiers: list[str], optional
+    :param subject_ids: Subject ids of members to add, defaults to []
+    :type subject_ids: list[str], optional
+    :param replace_all_existing: Whether to replace existing membership of group,
+    "T" will replace, "F" will only add members, defaults to "F"
+    :type replace_all_existing: str, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperPermissionDenied: Permission denied to complete the operation
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: A Group object representing the group that members were added to
+    :rtype: Group
+    """
     from .objects.group import Group
 
     identifiers_to_add = [{"subjectIdentifier": ident} for ident in subject_identifiers]
@@ -219,16 +301,35 @@ def add_members_to_group(
             # We're not sure what exactly has happened here,
             # So raise the original SuccessException
             raise err
-    return Group.from_results(client, r["WsAddMemberResults"]["wsGroupAssigned"])
+    return Group(client, r["WsAddMemberResults"]["wsGroupAssigned"])
 
 
 def delete_members_from_group(
     group_name: str,
-    client: Client,
+    client: GrouperClient,
     subject_identifiers: list[str] = [],
     subject_ids: list[str] = [],
     act_as_subject: Subject | None = None,
 ) -> Group:
+    """Remove members from a group.
+
+    :param group_name: The name of the group to remove members from
+    :type group_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param subject_identifiers: Subject identifiers of members to remove, defaults to []
+    :type subject_identifiers: list[str], optional
+    :param subject_ids: Subject ids of members to remove, defaults to []
+    :type subject_ids: list[str], optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperPermissionDenied: Permission denied to complete the operation
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: A Group object representing the group that members were removed from
+    :rtype: Group
+    """
     from .objects.group import Group
 
     identifiers_to_delete = [
@@ -266,18 +367,42 @@ def delete_members_from_group(
         else:  # pragma: no cover
             # We're not sure what exactly has happened here,
             # So raise the original SuccessException
-            raise
-    return Group.from_results(client, r["WsDeleteMemberResults"]["wsGroup"])
+            raise err
+    return Group(client, r["WsDeleteMemberResults"]["wsGroup"])
 
 
 def get_members_for_groups(
     group_names: list[str],
-    client: Client,
+    client: GrouperClient,
     attributes: list[str] = [],
     member_filter: str = "all",
     resolve_groups: bool = True,
     act_as_subject: Subject | None = None,
 ) -> dict[Group, list[Subject]]:
+    """Get members for the given groups.
+
+    :param group_names: Group names to retreive members for
+    :type group_names: list[str]
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param attributes: Additional attributes to retrieve for the Subjects,
+    defaults to []
+    :type attributes: list[str], optional
+    :param member_filter: Type of mebership to return (all, immediate, effective),
+    defaults to "all"
+    :type member_filter: str, optional
+    :param resolve_groups: Whether to resolve subjects that are groups into Group
+    objects, which will require an additional API call per group, defaults to True
+    :type resolve_groups: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: A dictionary with Groups as the keys
+    and those groups' member list as the value
+    :rtype: dict[Group, list[Subject]]
+    """
     from .objects.group import Group
 
     group_lookup = [{"groupName": group} for group in group_names]
@@ -323,7 +448,7 @@ def get_members_for_groups(
     subject_attr_names = r["WsGetMembersResults"]["subjectAttributeNames"]
     for result in r["WsGetMembersResults"]["results"]:
         # members: list[Subject] = []
-        key = Group.from_results(client, result["wsGroup"])
+        key = Group(client, result["wsGroup"])
         if result["resultMetadata"]["success"] == "T":
             if "wsSubjects" in result:
                 members = [

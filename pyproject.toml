@@ -42,15 +42,15 @@ accept_no_raise_doc = false
 accept_no_return_doc = false
 accept_no_yields_doc = false
 
-# [[tool.pylama.files]]
-# # Only run these additional linters against the app directory
-# # This might need to be more targeted, but this at least shows how
-# # filtering can be done to apply different linters to different
-# # parts of the code
-# #
-# # Test functions don't need docstrings, so don't check for them there.
-# path = "itac_api/*"
-# linters = "pycodestyle,pyflakes,pydocstyle,pylint"
+[[tool.pylama.files]]
+# Only run these additional linters against the app directory
+# This might need to be more targeted, but this at least shows how
+# filtering can be done to apply different linters to different
+# parts of the code
+#
+# Test functions don't need docstrings, so don't check for them there.
+path = "grouper_python/*"
+linters = "pycodestyle,pyflakes,pydocstyle,pylint"
 
 [tool.mypy]
 files="tests,grouper_python"
@@ -70,7 +70,6 @@ no_implicit_reexport = true
 strict_equality = true
 strict_concatenate = true
 # --strict end
-plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 module = "tests.*"

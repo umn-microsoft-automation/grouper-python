@@ -2,12 +2,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from grouper_python import Person
-from grouper_python import Group
+    from grouper_python.objects import Person
+from grouper_python.objects import Group
 from . import data
 import pytest
 import respx
 from httpx import Response
+from grouper_python.objects.exceptions import GrouperSubjectNotFoundException
 
 
 @respx.mock
@@ -69,5 +70,7 @@ def test_is_member_not_found(grouper_person: Person):
         return_value=Response(200, json=data.has_member_result_subject_not_found)
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(GrouperSubjectNotFoundException) as excinfo:
         grouper_person.is_member("test:GROUP2")
+
+    assert excinfo.value.subject_identifier == "user3333"

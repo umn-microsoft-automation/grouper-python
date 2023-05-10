@@ -1,68 +1,76 @@
+"""grouper_python.objects.privilege - Class definition for Privilege."""
+
 from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .client import Client
-from pydantic import BaseModel
+    from .client import GrouperClient
 from .subject import Subject
 from .group import Group
 from .stem import Stem
+from .base import GrouperBase
+from dataclasses import dataclass
 
 
-class Privilege(BaseModel):
+@dataclass(slots=True)
+class Privilege(GrouperBase):
+    """Privilege object representing a Grouper privilege.
+
+    :param client: A GrouperClient object containing connection information
+    :type client: GrouperClient
+    :param privilege_body: Body of the privilege as returned by the Grouper API
+    :type privilege_body: dict[str, Any]
+    :param subject_attr_names: Subject attribute names to correspond with
+    attribute values from the subject_body, defaults to []
+    :type subject_attr_names: list[str], optional
+    :raises ValueError: An unknown/unsupported target for the privilege was returned
+    by Grouper
+    """
+
+    stem: Stem | None
+    group: Group | None
+    target: Stem | Group
     revokable: str
     owner_subject: Subject
     allowed: str
-    stem: Stem | None = None
-    group: Group | None = None
-    target: Stem | Group
     subject: Subject
-    privilege_type: str
     privilege_name: str
+    privilege_type: str
 
-    class Config:
-        smart_union = True
-
-    @classmethod
-    def from_results(
-        cls: type[Privilege],
-        client: Client,
+    def __init__(
+        self,
+        client: GrouperClient,
         privilege_body: dict[str, Any],
         subject_attr_names: list[str] = [],
-    ) -> Privilege:
-        stem = (
-            Stem.from_results(client, privilege_body["wsStem"])
+    ) -> None:
+        """Construct a Privilege."""
+        self.stem = (
+            Stem(client, privilege_body["wsStem"])
             if "wsStem" in privilege_body
             else None
         )
-        group = (
-            Group.from_results(client, privilege_body["wsGroup"])
+        self.group = (
+            Group(client, privilege_body["wsGroup"])
             if "wsGroup" in privilege_body
             else None
         )
-        target: Stem | Group
-        if stem:
-            target = stem
-        elif group:
-            target = group
+        if self.stem:
+            self.target = self.stem
+        elif self.group:
+            self.target = self.group
         else:  # pragma: no cover
             raise ValueError("Unknown target for privilege", privilege_body)
-        return cls(
-            revokable=privilege_body["revokable"],
-            owner_subject=Subject.from_results(
-                client=client,
-                subject_body=privilege_body["ownerSubject"],
-                subject_attr_names=subject_attr_names,
-            ),
-            allowed=privilege_body["allowed"],
-            stem=stem,
-            group=group,
-            target=target,
-            subject=Subject.from_results(
-                client=client,
-                subject_body=privilege_body["wsSubject"],
-                subject_attr_names=subject_attr_names,
-            ),
-            privilege_type=privilege_body["privilegeType"],
-            privilege_name=privilege_body["privilegeName"],
+        self.revokable = privilege_body["revokable"]
+        self.owner_subject = Subject(
+            client=client,
+            subject_body=privilege_body["ownerSubject"],
+            subject_attr_names=subject_attr_names,
         )
+        self.allowed = privilege_body["allowed"]
+        self.subject = Subject(
+            client=client,
+            subject_body=privilege_body["wsSubject"],
+            subject_attr_names=subject_attr_names,
+        )
+        self.privilege_type = privilege_body["privilegeType"]
+        self.privilege_name = privilege_body["privilegeName"]

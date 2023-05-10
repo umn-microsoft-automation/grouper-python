@@ -1,9 +1,18 @@
+"""grouper-python.group - functions to interact with group objects.
+
+These are "helper" functions that most likely will not be called directly.
+Instead, a GrouperClient class should be created, then from there use that
+GrouperClient's methods to find and create objects, and use those objects' methods.
+These helper functions are used by those objects, but can be called
+directly if needed.
+"""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover
     from .objects.group import CreateGroup, Group
-    from .objects.client import Client
+    from .objects.client import GrouperClient
     from .objects.subject import Subject
 from .objects.exceptions import (
     GrouperGroupNotFoundException,
@@ -15,10 +24,25 @@ from .objects.exceptions import (
 
 def find_group_by_name(
     group_name: str,
-    client: Client,
+    client: GrouperClient,
     stem: str | None = None,
     act_as_subject: Subject | None = None,
 ) -> list[Group]:
+    """Find a group or groups by approximate name.
+
+    :param group_name: The group name to search for
+    :type group_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param stem: Optional stem to limit the search to, defaults to None
+    :type stem: str | None, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperStemNotFoundException: The specified stem cannot be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: List of found groups, will be an empty list if no groups are found
+    :rtype: list[Group]
+    """
     from .objects.group import Group
 
     body = {
@@ -45,10 +69,10 @@ def find_group_by_name(
             raise GrouperStemNotFoundException(str(stem), r)
         else:  # pragma: no cover
             # Some other issue, so pass the failure through
-            raise
+            raise err
     if "groupResults" in r["WsFindGroupsResults"]:
         return [
-            Group.from_results(client, grp)
+            Group(client, grp)
             for grp in r["WsFindGroupsResults"]["groupResults"]
         ]
     else:
@@ -57,9 +81,20 @@ def find_group_by_name(
 
 def create_groups(
     groups: list[CreateGroup],
-    client: Client,
+    client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> list[Group]:
+    """Create groups.
+
+    :param groups: List of groups to create
+    :type groups: list[CreateGroup]
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :return: Group objects representing the created groups
+    :rtype: list[Group]
+    """
     from .objects.group import Group
 
     groups_to_save = []
@@ -87,16 +122,29 @@ def create_groups(
         act_as_subject=act_as_subject,
     )
     return [
-        Group.from_results(client, result["wsGroup"])
+        Group(client, result["wsGroup"])
         for result in r["WsGroupSaveResults"]["results"]
     ]
 
 
 def delete_groups(
     group_names: list[str],
-    client: Client,
+    client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> None:
+    """Delete the given groups.
+
+    :param group_names: The names of groups to delete
+    :type group_names: list[str]
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperPermissionDenied: Permission denied to complete the operation
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    """
     group_lookup = [{"groupName": group} for group in group_names]
     body = {
         "WsRestGroupDeleteRequest": {
@@ -139,10 +187,25 @@ def delete_groups(
 
 def get_groups_by_parent(
     parent_name: str,
-    client: Client,
+    client: GrouperClient,
     recursive: bool = False,
     act_as_subject: Subject | None = None,
 ) -> list[Group]:
+    """Get Groups within the given parent stem.
+
+    :param parent_name: The parent stem to look in
+    :type parent_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param recursive: Whether to look recursively through the entire subtree (True),
+    or only one level in the given parent (False), defaults to False
+    :type recursive: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: The list of Groups found
+    :rtype: list[Group]
+    """
     from .objects.group import Group
 
     body = {
@@ -162,7 +225,7 @@ def get_groups_by_parent(
     )
     if "groupResults" in r["WsFindGroupsResults"]:
         return [
-            Group.from_results(client, grp)
+            Group(client, grp)
             for grp in r["WsFindGroupsResults"]["groupResults"]
         ]
     else:
@@ -171,9 +234,23 @@ def get_groups_by_parent(
 
 def get_group_by_name(
     group_name: str,
-    client: Client,
+    client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> Group:
+    """Get a group with the given name.
+
+    :param group_name: The name of the group to get
+    :type group_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :raises GrouperGroupNotFoundException: A group with the given name cannot
+    be found
+    :raises GrouperSuccessException: An otherwise unhandled issue with the result
+    :return: The group with the given name
+    :rtype: Group
+    """
     from .objects.group import Group
 
     body = {
@@ -186,4 +263,4 @@ def get_group_by_name(
     r = client._call_grouper("/groups", body, act_as_subject=act_as_subject)
     if "groupResults" not in r["WsFindGroupsResults"]:
         raise GrouperGroupNotFoundException(group_name, r)
-    return Group.from_results(client, r["WsFindGroupsResults"]["groupResults"][0])
+    return Group(client, r["WsFindGroupsResults"]["groupResults"][0])

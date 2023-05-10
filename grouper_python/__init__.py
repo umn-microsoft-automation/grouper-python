@@ -1,9 +1,8 @@
-from .objects.client import Client
-from .objects.group import Group
-from .objects.stem import Stem
-from .objects.subject import Subject
-from .objects.person import Person
+"""grouper_python, a Python package for interacting with Grouper Web Services."""
 
-__version__ = "0.1.0"
+from .objects.client import GrouperClient
 
-__all__ = ["Client", "Group", "Stem", "Subject", "Person"]
+Client = GrouperClient
+
+__version__ = "0.1.1"
+__all__ = ["GrouperClient"]
