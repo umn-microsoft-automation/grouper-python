@@ -112,7 +112,7 @@ def create_groups(
         groups_to_save.append(group_to_save)
     body = {
         "WsRestGroupSaveRequest": {
-            "wsGroupToSaves": group_to_save,
+            "wsGroupToSaves": groups_to_save,
             "includeGroupDetail": "T",
         }
     }
