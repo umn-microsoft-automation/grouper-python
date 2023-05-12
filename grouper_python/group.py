@@ -215,9 +215,9 @@ def get_groups_by_parent(
         }
     }
     if recursive:
-        body["WsRestFindGroupsLiteRequest"]["parentStemNameScope"] = "ALL_IN_SUBTREE"
+        body["WsRestFindGroupsLiteRequest"]["stemNameScope"] = "ALL_IN_SUBTREE"
     else:
-        body["WsRestFindGroupsLiteRequest"]["parentStemNameScope"] = "ONE_LEVEL"
+        body["WsRestFindGroupsLiteRequest"]["stemNameScope"] = "ONE_LEVEL"
     r = client._call_grouper(
         "/groups",
         body,
