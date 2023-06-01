@@ -166,10 +166,13 @@ def get_privileges(
             act_as_subject=act_as_subject,
         )
         result = r["WsGetGrouperPrivilegesLiteResult"]
-        return [
-            Privilege(client, priv, result["subjectAttributeNames"])
-            for priv in result["privilegeResults"]
-        ]
+        if "privilegeResults" in result:
+            return [
+                Privilege(client, priv, result["subjectAttributeNames"])
+                for priv in result["privilegeResults"]
+            ]
+        else:
+            return []
     except GrouperSuccessException as err:
         r = err.grouper_result
         r_code = r["WsGetGrouperPrivilegesLiteResult"]["resultMetadata"]["resultCode"]
