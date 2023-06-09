@@ -154,7 +154,7 @@ def test_get_privilege(grouper_group: Group):
         json=data.get_priv_for_group_request,
     ).mock(return_value=Response(200, json=data.get_priv_for_group_result))
 
-    privs = grouper_group.get_privilege_on_this()
+    privs = grouper_group.get_privileges_on_this()
 
     assert len(privs) == 1
 

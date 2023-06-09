@@ -98,7 +98,7 @@ class Stem(GrouperEntity):
             act_as_subject=act_as_subject,
         )
 
-    def get_privilege_on_this(
+    def get_privileges_on_this(
         self,
         subject_id: str | None = None,
         subject_identifier: str | None = None,

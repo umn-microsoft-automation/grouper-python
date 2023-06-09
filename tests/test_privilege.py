@@ -27,7 +27,7 @@ def test_get_privilege_both_group_and_stem(grouper_subject: Subject):
 
 def test_get_privilege_both_subject_id_and_identifier(grouper_group: Group):
     with pytest.raises(ValueError) as excinfo:
-        grouper_group.get_privilege_on_this(
+        grouper_group.get_privileges_on_this(
             subject_id="abcd1234", subject_identifier="user1234"
         )
 
@@ -44,7 +44,7 @@ def test_get_privilege_subject_identifier(grouper_group: Group):
         json=data.get_priv_for_group_with_subject_identifier_request,
     ).mock(return_value=Response(200, json=data.get_priv_for_group_result))
 
-    privs = grouper_group.get_privilege_on_this(subject_identifier="user3333")
+    privs = grouper_group.get_privileges_on_this(subject_identifier="user3333")
 
     assert len(privs) == 1
 
@@ -57,7 +57,7 @@ def test_get_privilege_with_privilege_name(grouper_group: Group):
         json=data.get_priv_for_group_with_privilege_name_request,
     ).mock(return_value=Response(200, json=data.get_priv_for_group_result))
 
-    privs = grouper_group.get_privilege_on_this(privilege_name="admin")
+    privs = grouper_group.get_privileges_on_this(privilege_name="admin")
 
     assert len(privs) == 1
 
@@ -94,7 +94,7 @@ def test_get_privilege_subject_identifier_not_found(grouper_group: Group):
     )
 
     with pytest.raises(GrouperSubjectNotFoundException) as excinfo:
-        grouper_group.get_privilege_on_this(subject_identifier="user3333")
+        grouper_group.get_privileges_on_this(subject_identifier="user3333")
 
     assert excinfo.value.subject_identifier == "user3333"
 
@@ -106,7 +106,7 @@ def test_get_privilege_subject_id_not_found(grouper_group: Group):
     )
 
     with pytest.raises(GrouperSubjectNotFoundException) as excinfo:
-        grouper_group.get_privilege_on_this(subject_id="abcd1234")
+        grouper_group.get_privileges_on_this(subject_id="abcd1234")
 
     assert excinfo.value.subject_identifier == "abcd1234"
 
