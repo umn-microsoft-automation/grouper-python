@@ -129,6 +129,7 @@ class AttributeAssignment(GrouperBase):
     attributeAssignActionId: str
     attributeAssignActionName: str
     attributeAssignActionType: str
+    id: str
     owner: Group | Stem
     group: Group | None
     stem: Stem | None
@@ -157,6 +158,7 @@ class AttributeAssignment(GrouperBase):
         self.attributeAssignActionId = assign_body["attributeAssignActionId"]
         self.attributeAssignActionName = assign_body["attributeAssignActionName"]
         self.attributeAssignActionType = assign_body["attributeAssignActionType"]
+        self.id = assign_body["id"]
         self.group = group
         self.stem = stem
         if group:

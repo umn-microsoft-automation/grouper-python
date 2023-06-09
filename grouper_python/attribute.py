@@ -211,10 +211,10 @@ def get_attribute_assignments(
     if raw:
         return r
 
-    if "WsGetAttributeAssignmentsResults" not in r:
-        return []
-
     results = r["WsGetAttributeAssignmentsResults"]
+
+    if "wsAttributeAssigns" not in results:
+        return []
 
     ws_attribute_defs = results["wsAttributeDefs"]
     ws_attribute_def_names = results["wsAttributeDefNames"]
