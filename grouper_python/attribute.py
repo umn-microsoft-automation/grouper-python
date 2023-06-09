@@ -106,9 +106,9 @@ def assign_attribute(
 def get_attribute_assignments(
     attribute_assign_type: str,
     client: GrouperClient,
-    attribute_def_name_name: str | None = None,
-    attribute_def_name: str | None = None,
-    owner_name: str | None = None,
+    attribute_def_name_names: list[str] = [],
+    attribute_def_names: list[str] = [],
+    owner_names: list[str] = [],
     include_assignments_on_assignments: str = "F",
     *,
     raw: Literal[False] = False,
@@ -121,9 +121,9 @@ def get_attribute_assignments(
 def get_attribute_assignments(
     attribute_assign_type: str,
     client: GrouperClient,
-    attribute_def_name_name: str | None = None,
-    attribute_def_name: str | None = None,
-    owner_name: str | None = None,
+    attribute_def_name_names: list[str] = [],
+    attribute_def_names: list[str] = [],
+    owner_names: list[str] = [],
     include_assignments_on_assignments: str = "F",
     *,
     raw: Literal[True],
@@ -135,9 +135,9 @@ def get_attribute_assignments(
 def get_attribute_assignments(
     attribute_assign_type: str,
     client: GrouperClient,
-    attribute_def_name_name: str | None = None,
-    attribute_def_name: str | None = None,
-    owner_name: str | None = None,
+    attribute_def_name_names: list[str] = [],
+    attribute_def_names: list[str] = [],
+    owner_names: list[str] = [],
     include_assignments_on_assignments: str = "F",
     *,
     raw: bool = False,
@@ -151,16 +151,16 @@ def get_attribute_assignments(
     :type attribute_assign_type: str
     :param client: The GrouperClient to use
     :type client: GrouperClient
-    :param attribute_def_name_name: Name of attribute definition name
-    to retrieve assignments for, defaults to None
-    :type attribute_def_name_name: str | None, optional
-    :param attribute_def_name: Name of attribute defition
-    to retrieve assignments for, defaults to None
-    :type attribute_def_name: str | None, optional
-    :param owner_name: Owner to retrieve assignments for,
+    :param attribute_def_name_names: List of names of attribute definition names
+    to retrieve assignments for, defaults to []
+    :type attribute_def_name_names: list[str], optional
+    :param attribute_def_names: List of names of attribute defitions
+    to retrieve assignments for, defaults to []
+    :type attribute_def_names: list[str], optional
+    :param owner_names: List of owners to retrieve assignments for,
     if specified, only group, member, stem, or attr_def
-    are allowed for attribute_assign_type, defaults to None
-    :type owner_name: str | None, optional
+    are allowed for attribute_assign_type, defaults to []
+    :type owner_names: list[str], optional
     :param include_assignments_on_assignments: Specify "T" to get
     assignments on assignments, defaults to "F"
     :type include_assignments_on_assignments: str, optional
@@ -183,27 +183,30 @@ def get_attribute_assignments(
     )
     from .objects.group import Group
 
-    request = {
+    request: dict[str, Any] = {
         "attributeAssignType": attribute_assign_type,
         "includeAssignmentsOnAssignments": include_assignments_on_assignments,
     }
-    if owner_name:
-        if attribute_assign_type == "group":
-            request["wsOwnerGroupName"] = owner_name
-        elif attribute_assign_type == "member":
-            request["wsOwnerSubjectIdentifier"] = owner_name
-        elif attribute_assign_type == "stem":
-            request["wsOwnerStemName"] = owner_name
-        elif attribute_assign_type == "attr_def":
-            request["wsOwnerAttributeDefName"] = owner_name
-        else:
-            raise ValueError("Unknown or unsupported attributeAssignType given")
-    if attribute_def_name_name:
-        request["wsAttributeDefNameName"] = attribute_def_name_name
-    if attribute_def_name:
-        request["wsAttributeDefName"] = attribute_def_name
 
-    body = {"WsRestGetAttributeAssignmentsLiteRequest": request}
+    if attribute_assign_type == "group":
+        request["wsOwnerGroupLookups"] = [{"groupName": name} for name in owner_names]
+    elif attribute_assign_type == "member":
+        request["wsOwnerSubjectLookups"] = [
+            {"identifier": name} for name in owner_names
+        ]
+    elif attribute_assign_type == "stem":
+        request["wsOwnerStemLookups"] = [{"stemName": name} for name in owner_names]
+    elif attribute_assign_type == "attr_def":
+        request["wsOwnerAttributeLookups"] = [{"name": name} for name in owner_names]
+    else:
+        raise ValueError("Unknown or unsupported attributeAssignType given")
+
+    request["wsAttributeDefNameLookups"] = [
+        {"name": name} for name in attribute_def_name_names
+    ]
+    request["wsAttributeDefLookups"] = [{"name": name} for name in attribute_def_names]
+
+    body = {"WsRestGetAttributeAssignmentsRequest": request}
 
     r = client._call_grouper(
         "/attributeAssignments", body, act_as_subject=act_as_subject
@@ -218,13 +221,15 @@ def get_attribute_assignments(
 
     ws_attribute_defs = results["wsAttributeDefs"]
     ws_attribute_def_names = results["wsAttributeDefNames"]
-    attribute_defs = {
+    _attribute_defs = {
         ws_attr_def["uuid"]: AttributeDefinition(client, ws_attr_def)
         for ws_attr_def in ws_attribute_defs
     }
-    attribute_def_names = {
+    _attribute_def_names = {
         ws_attr_def_name["uuid"]: AttributeDefinitionName(
-            client, ws_attr_def_name, attribute_defs[ws_attr_def_name["attributeDefId"]]
+            client,
+            ws_attr_def_name,
+            _attribute_defs[ws_attr_def_name["attributeDefId"]],
         )
         for ws_attr_def_name in ws_attribute_def_names
     }
@@ -235,8 +240,8 @@ def get_attribute_assignments(
             AttributeAssignment(
                 client,
                 assg,
-                attribute_defs[assg["attributeDefId"]],
-                attribute_def_names[assg["attributeDefNameId"]],
+                _attribute_defs[assg["attributeDefId"]],
+                _attribute_def_names[assg["attributeDefNameId"]],
                 group=groups[assg["ownerGroupId"]],
             )
             for assg in results["wsAttributeAssigns"]
