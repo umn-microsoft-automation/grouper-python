@@ -1,75 +1,79 @@
 """grouper-python.attribute - functions to interact with grouper attributess.
 
 These are "helper" functions that normally will not be called directly.
-However these are still in development, so do not return Python types,
+However these are still in development,
 and are not usable from any objects currently.
 They can be used by calling directly.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, overload, Literal
 
 if TYPE_CHECKING:  # pragma: no cover
-    # from .objects.group import CreateGroup, Group
     from .objects.client import GrouperClient
     from .objects.subject import Subject
-# from .objects.exceptions import (
-#     GrouperGroupNotFoundException,
-#     GrouperSuccessException,
-#     GrouperStemNotFoundException,
-#     GrouperPermissionDenied,
-# )
+    from .objects.attribute import (
+        AttributeDefinition,
+        AttributeDefinitionName,
+        AttributeAssignment,
+    )
 
 
 def assign_attribute(
     attribute_assign_type: str,
     assign_operation: str,
     client: GrouperClient,
-    # owner_id: str | None = None,
     attribute_assign_id: str | None = None,
     owner_name: str | None = None,
     attribute_def_name_name: str | None = None,
     value: None | str | int | float = None,
     assign_value_operation: str | None = None,
+    *,
+    # raw: bool = False,
     act_as_subject: Subject | None = None,
 ) -> dict[str, Any]:
     """Assign an attribute.
 
-    :param attribute_assign_type: _description_
+    :param attribute_assign_type: Type of attribute assignment,
+    currently only "group" is supported
     :type attribute_assign_type: str
-    :param assign_operation: _description_
+    :param assign_operation: Assignment operation, one of
+    "assign_attr", "add_attr", "remove_attr", "replace_attrs"
     :type assign_operation: str
-    :param client: _description_
+    :param client: The GrouperClient to use
     :type client: GrouperClient
-    :param attribute_assign_id: _description_, defaults to None
+    :param attribute_assign_id: Existing assignment id, if modifying
+    an existing assignment, defaults to None
     :type attribute_assign_id: str | None, optional
-    :param owner_name: _description_, defaults to None
+    :param owner_name: Name of owner to assign attribute to,
+    defaults to None
     :type owner_name: str | None, optional
-    :param attribute_def_name_name: _description_, defaults to None
+    :param attribute_def_name_name: Attribute definition name name to assign,
+    defaults to None
     :type attribute_def_name_name: str | None, optional
-    :param value: _description_, defaults to None
+    :param value: Value to assign, also requires assign_value_operation,
+    defaults to None
     :type value: None | str | int | float, optional
-    :param assign_value_operation: _description_, defaults to None
+    :param assign_value_operation: Value assignment operation, one of
+    "assign_value", "add_value", "remove_value", "replace_values",
+    requires value to be specified as well, defaults to None
     :type assign_value_operation: str | None, optional
-    :param act_as_subject: _description_, defaults to None
+    :param act_as_subject: Optional subject to act as, defaults to None
     :type act_as_subject: Subject | None, optional
-    :raises ValueError: _description_
-    :return: _description_
+    :raises ValueError: An unknown or unsupported attribute_assign_type is given
+    :return: The raw result from the web services of the operation
     :rtype: dict[str, Any]
     """
     request: dict[str, Any] = {
-        # "WsRestAssignAttributesLiteRequest": {
-        # "wsAttributeDefNameName": attribute_def_name_name,
         "attributeAssignType": attribute_assign_type,
         "attributeAssignOperation": assign_operation,
     }
-    # }
     if attribute_assign_type == "group":
         if owner_name:
             request["wsOwnerGroupLookups"] = [{"groupName": owner_name}]
         else:
             request["wsOwnerGroupLookups"] = []
-        # request["wsOwnerGroupName"] = owner_name
+    # # These need to be converted from their "lite" equivalent
     # elif attribute_assign_type == "member":
     #     request["wsOwnerSubjectIdentifier"] = owner_name
     # elif attribute_assign_type == "stem":
@@ -92,8 +96,40 @@ def assign_attribute(
     r = client._call_grouper(
         "/attributeAssignments", body, act_as_subject=act_as_subject
     )
+    # if raw:
+    #     return r
 
     return r
+
+
+@overload
+def get_attribute_assignments(
+    attribute_assign_type: str,
+    client: GrouperClient,
+    attribute_def_name_name: str | None = None,
+    attribute_def_name: str | None = None,
+    owner_name: str | None = None,
+    include_assignments_on_assignments: str = "F",
+    *,
+    raw: Literal[False] = False,
+    act_as_subject: Subject | None = None,
+) -> list[AttributeAssignment]:
+    ...
+
+
+@overload
+def get_attribute_assignments(
+    attribute_assign_type: str,
+    client: GrouperClient,
+    attribute_def_name_name: str | None = None,
+    attribute_def_name: str | None = None,
+    owner_name: str | None = None,
+    include_assignments_on_assignments: str = "F",
+    *,
+    raw: Literal[True],
+    act_as_subject: Subject | None = None,
+) -> dict[str, Any]:
+    ...
 
 
 def get_attribute_assignments(
@@ -103,30 +139,50 @@ def get_attribute_assignments(
     attribute_def_name: str | None = None,
     owner_name: str | None = None,
     include_assignments_on_assignments: str = "F",
-    # value: None | str | int | float = None,
-    # assign_value_operation: str | None = None,
+    *,
+    raw: bool = False,
     act_as_subject: Subject | None = None,
-) -> dict[str, Any]:
+) -> list[AttributeAssignment] | dict[str, Any]:
     """Get attribute assignments.
 
-    :param attribute_assign_type: _description_
+    :param attribute_assign_type: Type of attribute assignment,
+    must be a direct assignment type, one of
+    "group", "member", "stem", "any_mem", "imm_mem", "attr_def"
     :type attribute_assign_type: str
-    :param client: _description_
+    :param client: The GrouperClient to use
     :type client: GrouperClient
-    :param attribute_def_name_name: _description_, defaults to None
+    :param attribute_def_name_name: Name of attribute definition name
+    to retrieve assignments for, defaults to None
     :type attribute_def_name_name: str | None, optional
-    :param attribute_def_name: _description_, defaults to None
+    :param attribute_def_name: Name of attribute defition
+    to retrieve assignments for, defaults to None
     :type attribute_def_name: str | None, optional
-    :param owner_name: _description_, defaults to None
+    :param owner_name: Owner to retrieve assignments for,
+    if specified, only group, member, stem, or attr_def
+    are allowed for attribute_assign_type, defaults to None
     :type owner_name: str | None, optional
-    :param include_assignments_on_assignments: _description_, defaults to "F"
+    :param include_assignments_on_assignments: Specify "T" to get
+    assignments on assignments, defaults to "F"
     :type include_assignments_on_assignments: str, optional
-    :param act_as_subject: _description_, defaults to None
+    :param raw: Whether to return a raw dictionary of results instead
+    of Python objects, defaults to False
+    :type raw: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
     :type act_as_subject: Subject | None, optional
-    :raises ValueError: _description_
-    :return: _description_
-    :rtype: dict[str, Any]
+    :raises ValueError: An unknown or unsupported attribute_assign_type is given
+    :raises ValueError: The given attribute_assign_type is not supported as a Python
+    object, specify raw instead
+    :return:a list of AttributeAssignments or the raw dictionary result
+    from Grouper, depending on the value of raw
+    :rtype: list[AttributeAssignment] | dict[str, Any]
     """
+    from .objects.attribute import (
+        AttributeDefinition,
+        AttributeDefinitionName,
+        AttributeAssignment,
+    )
+    from .objects.group import Group
+
     request = {
         "attributeAssignType": attribute_assign_type,
         "includeAssignmentsOnAssignments": include_assignments_on_assignments,
@@ -152,5 +208,232 @@ def get_attribute_assignments(
     r = client._call_grouper(
         "/attributeAssignments", body, act_as_subject=act_as_subject
     )
+    if raw:
+        return r
 
-    return r
+    if "WsGetAttributeAssignmentsResults" not in r:
+        return []
+
+    results = r["WsGetAttributeAssignmentsResults"]
+
+    ws_attribute_defs = results["wsAttributeDefs"]
+    ws_attribute_def_names = results["wsAttributeDefNames"]
+    attribute_defs = {
+        ws_attr_def["uuid"]: AttributeDefinition(client, ws_attr_def)
+        for ws_attr_def in ws_attribute_defs
+    }
+    attribute_def_names = {
+        ws_attr_def_name["uuid"]: AttributeDefinitionName(
+            client, ws_attr_def_name, attribute_defs[ws_attr_def_name["attributeDefId"]]
+        )
+        for ws_attr_def_name in ws_attribute_def_names
+    }
+
+    if attribute_assign_type == "group":
+        groups = {group["uuid"]: Group(client, group) for group in results["wsGroups"]}
+        return [
+            AttributeAssignment(
+                client,
+                assg,
+                attribute_defs[assg["attributeDefId"]],
+                attribute_def_names[assg["attributeDefNameId"]],
+                group=groups[assg["ownerGroupId"]],
+            )
+            for assg in results["wsAttributeAssigns"]
+        ]
+    else:
+        raise ValueError("Unknown or unsupported attributeAssignType given, use raw")
+
+
+@overload
+def get_attribute_definitions(
+    attribute_def_name: str,
+    client: GrouperClient,
+    scope: str | None = None,
+    split_scope: str = "F",
+    parent_stem_id: str | None = None,
+    stem_scope: str | None = None,
+    *,
+    raw: Literal[False] = False,
+    act_as_subject: Subject | None = None,
+) -> list[AttributeDefinition]:
+    ...
+
+
+@overload
+def get_attribute_definitions(
+    attribute_def_name: str,
+    client: GrouperClient,
+    scope: str | None = None,
+    split_scope: str = "F",
+    parent_stem_id: str | None = None,
+    stem_scope: str | None = None,
+    *,
+    raw: Literal[True],
+    act_as_subject: Subject | None = None,
+) -> dict[str, Any]:
+    ...
+
+
+def get_attribute_definitions(
+    attribute_def_name: str,
+    client: GrouperClient,
+    scope: str | None = None,
+    split_scope: str = "F",
+    parent_stem_id: str | None = None,
+    stem_scope: str | None = None,
+    *,
+    raw: bool = False,
+    act_as_subject: Subject | None = None,
+) -> list[AttributeDefinition] | dict[str, Any]:
+    """Get attribute definitions.
+
+    Note: it appears that if the given attribute_def_name cannot
+    be found exactly, the endpoint will return all definitions that
+    match the remaining criteria.
+
+    :param attribute_def_name: Name of attribute definition to get
+    :type attribute_def_name: str
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param scope: Search string with % as wildcards will search name,
+    display name, description, defaults to None
+    :type scope: str | None, optional
+    :param split_scope: "T" or "F", if T will split the scope by whitespace,
+    and find attribute defs with each token, defaults to "F"
+    :type split_scope: str, optional
+    :param parent_stem_id: ID of parent stem to limit search for,
+    if specified stem_scope is also required, defaults to None
+    :type parent_stem_id: str | None, optional
+    :param stem_scope: Scope in stem to search for,
+    if specified must be one of "ONE_LEVEL" or "ALL_IN_SUBTREE",
+    and parent_stem_id must also be specified, defaults to None
+    :type stem_scope: str | None, optional
+    :param raw: Whether to return a raw dictionary of results instead
+    of Python objects, defaults to False
+    :type raw: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :return: a list of AttributeDefinitions or the raw dictionary result
+    from Grouper, depending on the value of raw
+    :rtype: list[AttributeDefinition] | dict[str, Any]
+    """
+    from .objects.attribute import AttributeDefinition
+
+    body = {
+        "WsRestFindAttributeDefsLiteRequest": {
+            "nameOfAttributeDef": attribute_def_name,
+        }
+    }
+    if scope:
+        body["WsRestFindAttributeDefsLiteRequest"]["scope"] = scope
+        body["WsRestFindAttributeDefsLiteRequest"]["splitScope"] = split_scope
+
+    if parent_stem_id and stem_scope:
+        body["WsRestFindAttributeDefsLiteRequest"]["parentStemId"] = parent_stem_id
+        body["WsRestFindAttributeDefsLiteRequest"]["stemScope"] = stem_scope
+
+    r = client._call_grouper("/attributeDefs", body, act_as_subject=act_as_subject)
+    if raw:
+        return r
+    results = r["WsFindAttributeDefsResults"]
+
+    if "attributeDefResults" in results:
+        return [
+            AttributeDefinition(client, attribute_def_body)
+            for attribute_def_body in results["attributeDefResults"]
+        ]
+    else:
+        return []
+
+
+@overload
+def get_attribute_definition_names(
+    client: GrouperClient,
+    attribute_def_name_name: str | None = None,
+    name_of_attribute_def: str | None = None,
+    scope: str | None = None,
+    *,
+    raw: Literal[False] = False,
+    act_as_subject: Subject | None = None,
+) -> list[AttributeDefinitionName]:
+    ...
+
+
+@overload
+def get_attribute_definition_names(
+    client: GrouperClient,
+    attribute_def_name_name: str | None = None,
+    name_of_attribute_def: str | None = None,
+    scope: str | None = None,
+    *,
+    raw: Literal[True],
+    act_as_subject: Subject | None = None,
+) -> dict[str, Any]:
+    ...
+
+
+def get_attribute_definition_names(
+    client: GrouperClient,
+    attribute_def_name_name: str | None = None,
+    name_of_attribute_def: str | None = None,
+    scope: str | None = None,
+    *,
+    raw: bool = False,
+    act_as_subject: Subject | None = None,
+) -> list[AttributeDefinitionName] | dict[str, Any]:
+    """Get Attribute Definition Names.
+
+    :param client: The GrouperClient to use
+    :type client: GrouperClient
+    :param attribute_def_name_name: The name of the attribute definition name
+    to retrieve, defaults to None
+    :type attribute_def_name_name: str | None, optional
+    :param name_of_attribute_def: The name of the attribute definition to
+    retrieve attribute definition names for, defaults to None
+    :type name_of_attribute_def: str | None, optional
+    :param scope: Search string with % as wildcards,
+    will search name, display name, description, defaults to None
+    :type scope: str | None, optional
+    :param raw: Whether to return a raw dictionary of results instead
+    of Python objects, defaults to False
+    :type raw: bool, optional
+    :param act_as_subject: Optional subject to act as, defaults to None
+    :type act_as_subject: Subject | None, optional
+    :return: a list of AttributeDefinitionNames or the raw dictionary result
+    from Grouper, depending on the value of raw
+    :rtype: list[AttributeDefinitionName] | dict[str, Any]
+    """
+    from .objects.attribute import AttributeDefinitionName, AttributeDefinition
+
+    request: dict[str, str] = {}
+    if attribute_def_name_name:
+        request["attributeDefNameName"] = attribute_def_name_name
+    if name_of_attribute_def:
+        request["nameOfAttributeDef"] = name_of_attribute_def
+    if scope:
+        request["scope"] = scope
+    body = {"WsRestFindAttributeDefNamesLiteRequest": request}
+
+    r = client._call_grouper("/attributeDefNames", body, act_as_subject=act_as_subject)
+    if raw:
+        return r
+    results = r["WsFindAttributeDefNamesResults"]
+
+    if "attributeDefNameResults" not in results:
+        return []
+
+    ws_attribute_defs = results.get("attributeDefs", [])
+    ws_attribute_def_names = results["attributeDefNameResults"]
+
+    attribute_defs = {
+        ws_attr_def["uuid"]: AttributeDefinition(client, ws_attr_def)
+        for ws_attr_def in ws_attribute_defs
+    }
+
+    return [
+        AttributeDefinitionName(
+            client, attr_name, attribute_defs[attr_name["attributeDefId"]]
+        )
+        for attr_name in ws_attribute_def_names
+    ]

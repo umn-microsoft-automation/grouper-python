@@ -6,6 +6,12 @@ from .stem import Stem, CreateStem
 from .subject import Subject
 from .privilege import Privilege
 from .membership import Membership, MemberType, MembershipType
+from .attribute import (
+    AttributeDefinition,
+    AttributeDefinitionName,
+    AttributeAssignment,
+    AttributeAssignmentValue
+)
 
 __all__ = [
     "Group",
@@ -18,4 +24,8 @@ __all__ = [
     "Membership",
     "MemberType",
     "MembershipType",
+    "AttributeDefinition",
+    "AttributeDefinitionName",
+    "AttributeAssignment",
+    "AttributeAssignmentValue",
 ]
