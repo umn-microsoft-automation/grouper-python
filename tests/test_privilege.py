@@ -50,6 +50,19 @@ def test_get_privilege_subject_identifier(grouper_group: Group):
 
 
 @respx.mock
+def test_get_privilege_subject_identifier_none_found(grouper_group: Group):
+    respx.route(
+        method="POST",
+        url=data.URI_BASE + "/grouperPrivileges",
+        json=data.get_priv_for_group_with_subject_identifier_request,
+    ).mock(return_value=Response(200, json=data.get_priv_for_group_result_none_found))
+
+    privs = grouper_group.get_privileges_on_this(subject_identifier="user3333")
+
+    assert len(privs) == 0
+
+
+@respx.mock
 def test_get_privilege_with_privilege_name(grouper_group: Group):
     respx.route(
         method="POST",

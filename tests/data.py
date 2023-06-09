@@ -626,3 +626,7 @@ get_priv_result_stem_not_found = {
         "resultMetadata": {"success": "F", "resultCode": "STEM_NOT_FOUND"}
     }
 }
+
+get_priv_for_group_result_none_found = {
+    "WsGetGrouperPrivilegesLiteResult": {"resultMetadata": {"success": "T"}}
+}
