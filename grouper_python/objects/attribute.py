@@ -7,8 +7,10 @@ if TYPE_CHECKING:  # pragma: no cover
     from .group import Group
     from .stem import Stem
     from .client import GrouperClient
+    from .subject import Subject
 from dataclasses import dataclass
 from .base import GrouperEntity, GrouperBase
+from ..attribute import assign_attribute
 
 
 @dataclass(slots=True, eq=False)
@@ -171,3 +173,20 @@ class AttributeAssignment(GrouperBase):
         ] if "wsAttributeAssignValues" in assign_body else []
         self.attribute_definition = attribute_def
         self.attribute_definition_name = attribute_def_name
+
+    def delete(
+        self,
+        act_as_subject: Subject | None = None,
+    ) -> None:
+        """Delete this attribute assignment in Grouper.
+
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        """
+        assign_attribute(
+            attribute_assign_type=self.attributeAssignType,
+            assign_operation="remove_attr",
+            client=self.client,
+            attribute_assign_id=self.id,
+            act_as_subject=act_as_subject,
+        )

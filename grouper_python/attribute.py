@@ -19,6 +19,7 @@ if TYPE_CHECKING:  # pragma: no cover
     )
 
 
+@overload
 def assign_attribute(
     attribute_assign_type: str,
     assign_operation: str,
@@ -29,9 +30,42 @@ def assign_attribute(
     value: None | str | int | float = None,
     assign_value_operation: str | None = None,
     *,
-    # raw: bool = False,
+    raw: Literal[False] = False,
+    act_as_subject: Subject | None = None,
+) -> list[AttributeAssignment]:
+    ...
+
+
+@overload
+def assign_attribute(
+    attribute_assign_type: str,
+    assign_operation: str,
+    client: GrouperClient,
+    attribute_assign_id: str | None = None,
+    owner_name: str | None = None,
+    attribute_def_name_name: str | None = None,
+    value: None | str | int | float = None,
+    assign_value_operation: str | None = None,
+    *,
+    raw: Literal[True],
     act_as_subject: Subject | None = None,
 ) -> dict[str, Any]:
+    ...
+
+
+def assign_attribute(
+    attribute_assign_type: str,
+    assign_operation: str,
+    client: GrouperClient,
+    attribute_assign_id: str | None = None,
+    owner_name: str | None = None,
+    attribute_def_name_name: str | None = None,
+    value: None | str | int | float = None,
+    assign_value_operation: str | None = None,
+    *,
+    raw: bool = False,
+    act_as_subject: Subject | None = None,
+) -> list[AttributeAssignment] | dict[str, Any]:
     """Assign an attribute.
 
     :param attribute_assign_type: Type of attribute assignment,
@@ -58,12 +92,23 @@ def assign_attribute(
     "assign_value", "add_value", "remove_value", "replace_values",
     requires value to be specified as well, defaults to None
     :type assign_value_operation: str | None, optional
+    :param raw: Whether to return a raw dictionary of results instead
+    of Python objects, defaults to False
+    :type raw: bool, optional
     :param act_as_subject: Optional subject to act as, defaults to None
     :type act_as_subject: Subject | None, optional
     :raises ValueError: An unknown or unsupported attribute_assign_type is given
-    :return: The raw result from the web services of the operation
-    :rtype: dict[str, Any]
+    :return: A list of modified AttributeAssignments or the raw dictionary result
+    from Grouper, depending on the value of raw
+    :rtype: list[AttributeAssignment] | dict[str, Any]
     """
+    from .objects.attribute import (
+        AttributeDefinition,
+        AttributeDefinitionName,
+        AttributeAssignment,
+    )
+    from .objects.group import Group
+
     request: dict[str, Any] = {
         "attributeAssignType": attribute_assign_type,
         "attributeAssignOperation": assign_operation,
@@ -96,10 +141,55 @@ def assign_attribute(
     r = client._call_grouper(
         "/attributeAssignments", body, act_as_subject=act_as_subject
     )
-    # if raw:
-    #     return r
+    if raw:
+        return r
 
-    return r
+    results = r["WsAssignAttributesResults"]
+
+    ws_attribute_defs = results["wsAttributeDefs"]
+    ws_attribute_def_names = results["wsAttributeDefNames"]
+    _attribute_defs = {
+        ws_attr_def["uuid"]: AttributeDefinition(client, ws_attr_def)
+        for ws_attr_def in ws_attribute_defs
+    }
+    _attribute_def_names = {
+        ws_attr_def_name["uuid"]: AttributeDefinitionName(
+            client,
+            ws_attr_def_name,
+            _attribute_defs[ws_attr_def_name["attributeDefId"]],
+        )
+        for ws_attr_def_name in ws_attribute_def_names
+    }
+
+    r_list: list[AttributeAssignment] = []
+
+    if attribute_assign_type == "group":
+        groups = {group["uuid"]: Group(client, group) for group in results["wsGroups"]}
+        for assign_result in results["wsAttributeAssignResults"]:
+            for assg in assign_result["wsAttributeAssigns"]:
+                r_list.append(
+                    AttributeAssignment(
+                        client,
+                        assg,
+                        _attribute_defs[assg["attributeDefId"]],
+                        _attribute_def_names[assg["attributeDefNameId"]],
+                        group=groups[assg["ownerGroupId"]],
+                    )
+                )
+        # return [
+            # AttributeAssignment(
+            #     client,
+            #     assg,
+            #     _attribute_defs[assg["attributeDefId"]],
+            #     _attribute_def_names[assg["attributeDefNameId"]],
+            #     group=groups[assg["ownerGroupId"]],
+            # )
+        #     for assg in results["wsAttributeAssigns"]
+        # ]
+    else:
+        raise ValueError("Unknown or unsupported attributeAssignType given, use raw")
+
+    return r_list
 
 
 @overload
