@@ -32,7 +32,7 @@ def assign_attribute(
     *,
     raw: Literal[False] = False,
     act_as_subject: Subject | None = None,
-) -> list[AttributeAssignment]:
+) -> list[AttributeAssignment]:  # pragma: no cover
     ...
 
 
@@ -49,7 +49,7 @@ def assign_attribute(
     *,
     raw: Literal[True],
     act_as_subject: Subject | None = None,
-) -> dict[str, Any]:
+) -> dict[str, Any]:  # pragma: no cover
     ...
 
 
@@ -108,6 +108,7 @@ def assign_attribute(
         AttributeAssignment,
     )
     from .objects.group import Group
+    from .objects.stem import Stem
 
     request: dict[str, Any] = {
         "attributeAssignType": attribute_assign_type,
@@ -118,14 +119,22 @@ def assign_attribute(
             request["wsOwnerGroupLookups"] = [{"groupName": owner_name}]
         else:
             request["wsOwnerGroupLookups"] = []
-    # # These need to be converted from their "lite" equivalent
-    # elif attribute_assign_type == "member":
-    #     request["wsOwnerSubjectIdentifier"] = owner_name
-    # elif attribute_assign_type == "stem":
-    #     request["wsOwnerStemName"] = owner_name
-    # elif attribute_assign_type == "attr_def":
-    #     request["wsOwnerAttributeDefName"] = owner_name
-    else:
+    elif attribute_assign_type == "stem":
+        if owner_name:
+            request["wsOwnerStemLookups"] = [{"stemName": owner_name}]
+        else:
+            request["wsOwnerStemLookups"] = []
+    elif attribute_assign_type == "member":  # pragma: no cover
+        if owner_name:
+            request["wsOwnerSubjectLookups"] = [{"identifier": owner_name}]
+        else:
+            request["wsOwnerSubjectLookups"] = []
+    elif attribute_assign_type == "attr_def":  # pragma: no cover
+        if owner_name:
+            request["wsOwnerAttributeLookups"] = [{"name": owner_name}]
+        else:
+            request["wsOwnerAttributeLookups"] = []
+    else:  # pragma: no cover
         raise ValueError("Unknown or unsupported attributeAssignType given")
     if attribute_assign_id:
         request["wsAttributeAssignLookups"] = [{"uuid": attribute_assign_id}]
@@ -141,7 +150,7 @@ def assign_attribute(
     r = client._call_grouper(
         "/attributeAssignments", body, act_as_subject=act_as_subject
     )
-    if raw:
+    if raw:  # pragma: no cover
         return r
 
     results = r["WsAssignAttributesResults"]
@@ -176,17 +185,20 @@ def assign_attribute(
                         group=groups[assg["ownerGroupId"]],
                     )
                 )
-        # return [
-            # AttributeAssignment(
-            #     client,
-            #     assg,
-            #     _attribute_defs[assg["attributeDefId"]],
-            #     _attribute_def_names[assg["attributeDefNameId"]],
-            #     group=groups[assg["ownerGroupId"]],
-            # )
-        #     for assg in results["wsAttributeAssigns"]
-        # ]
-    else:
+    elif attribute_assign_type == "stem":
+        stems = {stem["uuid"]: Stem(client, stem) for stem in results["wsStems"]}
+        for assign_result in results["wsAttributeAssignResults"]:
+            for assg in assign_result["wsAttributeAssigns"]:
+                r_list.append(
+                    AttributeAssignment(
+                        client,
+                        assg,
+                        _attribute_defs[assg["attributeDefId"]],
+                        _attribute_def_names[assg["attributeDefNameId"]],
+                        stem=stems[assg["ownerStemId"]],
+                    )
+                )
+    else:  # pragma: no cover
         raise ValueError("Unknown or unsupported attributeAssignType given, use raw")
 
     return r_list
@@ -203,7 +215,7 @@ def get_attribute_assignments(
     *,
     raw: Literal[False] = False,
     act_as_subject: Subject | None = None,
-) -> list[AttributeAssignment]:
+) -> list[AttributeAssignment]:  # pragma: no cover
     ...
 
 
@@ -218,7 +230,7 @@ def get_attribute_assignments(
     *,
     raw: Literal[True],
     act_as_subject: Subject | None = None,
-) -> dict[str, Any]:
+) -> dict[str, Any]:  # pragma: no cover
     ...
 
 
@@ -272,6 +284,7 @@ def get_attribute_assignments(
         AttributeAssignment,
     )
     from .objects.group import Group
+    from .objects.stem import Stem
 
     request: dict[str, Any] = {
         "attributeAssignType": attribute_assign_type,
@@ -280,15 +293,15 @@ def get_attribute_assignments(
 
     if attribute_assign_type == "group":
         request["wsOwnerGroupLookups"] = [{"groupName": name} for name in owner_names]
-    elif attribute_assign_type == "member":
+    elif attribute_assign_type == "stem":
+        request["wsOwnerStemLookups"] = [{"stemName": name} for name in owner_names]
+    elif attribute_assign_type == "member":  # pragma: no cover
         request["wsOwnerSubjectLookups"] = [
             {"identifier": name} for name in owner_names
         ]
-    elif attribute_assign_type == "stem":
-        request["wsOwnerStemLookups"] = [{"stemName": name} for name in owner_names]
-    elif attribute_assign_type == "attr_def":
+    elif attribute_assign_type == "attr_def":  # pragma: no cover
         request["wsOwnerAttributeLookups"] = [{"name": name} for name in owner_names]
-    else:
+    else:  # pragma: no cover
         raise ValueError("Unknown or unsupported attributeAssignType given")
 
     request["wsAttributeDefNameLookups"] = [
@@ -301,7 +314,7 @@ def get_attribute_assignments(
     r = client._call_grouper(
         "/attributeAssignments", body, act_as_subject=act_as_subject
     )
-    if raw:
+    if raw:  # pragma: no cover
         return r
 
     results = r["WsGetAttributeAssignmentsResults"]
@@ -336,7 +349,19 @@ def get_attribute_assignments(
             )
             for assg in results["wsAttributeAssigns"]
         ]
-    else:
+    elif attribute_assign_type == "stem":
+        stems = {stem["uuid"]: Stem(client, stem) for stem in results["wsStems"]}
+        return [
+            AttributeAssignment(
+                client,
+                assg,
+                _attribute_defs[assg["attributeDefId"]],
+                _attribute_def_names[assg["attributeDefNameId"]],
+                stem=stems[assg["ownerStemId"]],
+            )
+            for assg in results["wsAttributeAssigns"]
+        ]
+    else:  # pragma: no cover
         raise ValueError("Unknown or unsupported attributeAssignType given, use raw")
 
 
@@ -351,7 +376,7 @@ def get_attribute_definitions(
     *,
     raw: Literal[False] = False,
     act_as_subject: Subject | None = None,
-) -> list[AttributeDefinition]:
+) -> list[AttributeDefinition]:  # pragma: no cover
     ...
 
 
@@ -366,7 +391,7 @@ def get_attribute_definitions(
     *,
     raw: Literal[True],
     act_as_subject: Subject | None = None,
-) -> dict[str, Any]:
+) -> dict[str, Any]:  # pragma: no cover
     ...
 
 
@@ -451,7 +476,7 @@ def get_attribute_definition_names(
     *,
     raw: Literal[False] = False,
     act_as_subject: Subject | None = None,
-) -> list[AttributeDefinitionName]:
+) -> list[AttributeDefinitionName]:  # pragma: no cover
     ...
 
 
@@ -464,7 +489,7 @@ def get_attribute_definition_names(
     *,
     raw: Literal[True],
     act_as_subject: Subject | None = None,
-) -> dict[str, Any]:
+) -> dict[str, Any]:  # pragma: no cover
     ...
 
 
