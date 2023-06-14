@@ -69,7 +69,6 @@ def assign_privileges(
             f"Target type must be either 'stem' or 'group', but got '{target_type}'."
         )
     body = {"WsRestAssignGrouperPrivilegesRequest": request}
-    print(body)
     client._call_grouper(
         "/grouperPrivileges",
         body,
