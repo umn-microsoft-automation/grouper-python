@@ -320,27 +320,27 @@ get_groups_for_subject_no_memberships = {
 }
 
 create_priv_group_request = {
-    "WsRestAssignGrouperPrivilegesLiteRequest": {
+    "WsRestAssignGrouperPrivilegesRequest": {
         "allowed": "T",
-        "privilegeName": "update",
-        "subjectIdentifier": "user3333",
-        "groupName": "test:GROUP1",
+        "privilegeNames": ["update"],
+        "wsSubjectLookups": [{"subjectIdentifier": "user3333"}],
+        "wsGroupLookup": {"groupName": "test:GROUP1"},
         "privilegeType": "access",
     }
 }
 
 delete_priv_group_request = {
-    "WsRestAssignGrouperPrivilegesLiteRequest": {
+    "WsRestAssignGrouperPrivilegesRequest": {
         "allowed": "F",
-        "privilegeName": "update",
-        "subjectIdentifier": "user3333",
-        "groupName": "test:GROUP1",
+        "privilegeNames": ["update"],
+        "wsSubjectLookups": [{"subjectIdentifier": "user3333"}],
+        "wsGroupLookup": {"groupName": "test:GROUP1"},
         "privilegeType": "access",
     }
 }
 
 assign_priv_result_valid = {
-    "WsAssignGrouperPrivilegesLiteResult": {"resultMetadata": {"success": "T"}}
+    "WsAssignGrouperPrivilegesResults": {"resultMetadata": {"success": "T"}}
 }
 
 add_member_result_valid = {
@@ -469,21 +469,21 @@ delete_groups_group_not_found = {
 }
 
 create_priv_stem_request = {
-    "WsRestAssignGrouperPrivilegesLiteRequest": {
+    "WsRestAssignGrouperPrivilegesRequest": {
         "allowed": "T",
-        "privilegeName": "stemAttrRead",
-        "subjectIdentifier": "user3333",
-        "stemName": "test:child",
+        "privilegeNames": ["stemAttrRead"],
+        "wsSubjectLookups": [{"subjectIdentifier": "user3333"}],
+        "wsStemLookup": {"stemName": "test:child"},
         "privilegeType": "naming",
     }
 }
 
 delete_priv_stem_request = {
-    "WsRestAssignGrouperPrivilegesLiteRequest": {
+    "WsRestAssignGrouperPrivilegesRequest": {
         "allowed": "F",
-        "privilegeName": "stemAttrRead",
-        "subjectIdentifier": "user3333",
-        "stemName": "test:child",
+        "privilegeNames": ["stemAttrRead"],
+        "wsSubjectLookups": [{"subjectIdentifier": "user3333"}],
+        "wsStemLookup": {"stemName": "test:child"},
         "privilegeType": "naming",
     }
 }

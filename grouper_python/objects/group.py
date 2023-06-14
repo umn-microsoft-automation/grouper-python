@@ -18,7 +18,7 @@ from ..membership import (
     has_members,
 )
 from ..attribute import assign_attribute, get_attribute_assignments
-from ..privilege import assign_privilege, get_privileges
+from ..privilege import assign_privileges, get_privileges
 from ..group import delete_groups
 
 
@@ -145,11 +145,11 @@ class Group(Subject):
         :param act_as_subject: Optional subject to act as, defaults to None
         :type act_as_subject: Subject | None, optional
         """
-        assign_privilege(
-            target=self.name,
+        assign_privileges(
+            target_name=self.name,
             target_type="group",
-            privilege_name=privilege_name,
-            entity_identifier=entity_identifier,
+            privilege_names=[privilege_name],
+            entity_identifiers=[entity_identifier],
             allowed="T",
             client=self.client,
             act_as_subject=act_as_subject,
@@ -170,11 +170,63 @@ class Group(Subject):
         :param act_as_subject: Optional subject to act as, defaults to None
         :type act_as_subject: Subject | None, optional
         """
-        assign_privilege(
-            target=self.name,
+        assign_privileges(
+            target_name=self.name,
             target_type="group",
-            privilege_name=privilege_name,
-            entity_identifier=entity_identifier,
+            privilege_names=[privilege_name],
+            entity_identifiers=[entity_identifier],
+            allowed="F",
+            client=self.client,
+            act_as_subject=act_as_subject,
+        )
+
+    def create_privileges_on_this(
+        self,
+        entity_identifiers: list[str],
+        privilege_names: list[str],
+        act_as_subject: Subject | None = None,
+    ) -> None:
+        """Create privileges on this Group.
+
+        :param entity_identifiers: List of identifiers of the entities
+        to receive the permissions
+        :type entity_identifiers: list[str]
+        :param privilege_names: List of names of the privileges to assign
+        :type privilege_names: list[str]
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        """
+        assign_privileges(
+            target_name=self.name,
+            target_type="group",
+            privilege_names=privilege_names,
+            entity_identifiers=entity_identifiers,
+            allowed="T",
+            client=self.client,
+            act_as_subject=act_as_subject,
+        )
+
+    def delete_privileges_on_this(
+        self,
+        entity_identifiers: list[str],
+        privilege_names: list[str],
+        act_as_subject: Subject | None = None,
+    ) -> None:
+        """Delete privileges on this Group.
+
+        :param entity_identifiers: List of identifiers of the entities
+        to receive the permissions
+        :type entity_identifiers: list[str]
+        :param privilege_names: List of names of the privileges to assign
+        :type privilege_names: list[str]
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        """
+        assign_privileges(
+            target_name=self.name,
+            target_type="group",
+            privilege_names=privilege_names,
+            entity_identifiers=entity_identifiers,
             allowed="F",
             client=self.client,
             act_as_subject=act_as_subject,

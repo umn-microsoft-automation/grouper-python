@@ -12,7 +12,7 @@ from httpx import Response
 from . import data
 import pytest
 from grouper_python.util import call_grouper
-from grouper_python.privilege import assign_privilege
+from grouper_python.privilege import assign_privileges
 from grouper_python.membership import has_members, get_members_for_groups
 from grouper_python.objects.exceptions import (
     GrouperAuthException,
@@ -174,8 +174,8 @@ def test_grouper_auth_exception(grouper_client: GrouperClient):
 @respx.mock
 def test_assign_privilege_unknown_target_type(grouper_client: GrouperClient):
     with pytest.raises(ValueError) as excinfo:
-        assign_privilege(
-            "target:name", "type", "update", "user1234", "T", grouper_client
+        assign_privileges(
+            "target:name", "type", ["update"], ["user1234"], "T", grouper_client
         )
     assert (
         excinfo.value.args[0]

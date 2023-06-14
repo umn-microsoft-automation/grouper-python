@@ -8,7 +8,7 @@ directly if needed.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover
     from .objects.client import GrouperClient
@@ -22,26 +22,27 @@ from .objects.exceptions import (
 )
 
 
-def assign_privilege(
-    target: str,
+def assign_privileges(
+    target_name: str,
     target_type: str,
-    privilege_name: str,
-    entity_identifier: str,
+    privilege_names: list[str],
+    entity_identifiers: list[str],
     allowed: str,
     client: GrouperClient,
     act_as_subject: Subject | None = None,
 ) -> None:
-    """Assign (or remove) a permission.
+    """Assign (or remove) permissions.
 
-    :param target: Identifier of the target of the permission
-    :type target: str
+    :param target_name: Name of the target of the permission
+    :type target_name: str
     :param target_type: Type of target, either "stem" or "group"
     :type target_type: str
-    :param privilege_name: Name of the privilege to assign
-    :type privilege_name: str
-    :param entity_identifier: Identifier of the entity to receive the permission
-    :type entity_identifier: str
-    :param allowed: "T" to add the permission, "F" to remove it
+    :param privilege_names: List of names of the privileges to assign
+    :type privilege_names: list[str]
+    :param entity_identifiers: List of identifiers of the entities
+    to receive the permissions
+    :type entity_identifiers: list[str]
+    :param allowed: "T" to add the permissions, "F" to remove them
     :type allowed: str
     :param client: The GrouperClient to use
     :type client: GrouperClient
@@ -50,23 +51,25 @@ def assign_privilege(
     :raises ValueError: An unknown/unsupported target_type is specified
     :raises GrouperSuccessException: An otherwise unhandled issue with the result
     """
-    body = {
-        "WsRestAssignGrouperPrivilegesLiteRequest": {
-            "allowed": allowed,
-            "privilegeName": privilege_name,
-            "subjectIdentifier": entity_identifier,
-        }
+    request: dict[str, Any] = {
+        "allowed": allowed,
+        "privilegeNames": privilege_names,
     }
+    request["wsSubjectLookups"] = [
+        {"subjectIdentifier": identifier} for identifier in entity_identifiers
+    ]
     if target_type == "stem":
-        body["WsRestAssignGrouperPrivilegesLiteRequest"]["stemName"] = target
-        body["WsRestAssignGrouperPrivilegesLiteRequest"]["privilegeType"] = "naming"
+        request["wsStemLookup"] = {"stemName": target_name}
+        request["privilegeType"] = "naming"
     elif target_type == "group":
-        body["WsRestAssignGrouperPrivilegesLiteRequest"]["groupName"] = target
-        body["WsRestAssignGrouperPrivilegesLiteRequest"]["privilegeType"] = "access"
+        request["wsGroupLookup"] = {"groupName": target_name}
+        request["privilegeType"] = "access"
     else:
         raise ValueError(
             f"Target type must be either 'stem' or 'group', but got '{target_type}'."
         )
+    body = {"WsRestAssignGrouperPrivilegesRequest": request}
+    print(body)
     client._call_grouper(
         "/grouperPrivileges",
         body,

@@ -14,6 +14,7 @@ def test_create_privilege(grouper_stem: Stem):
     ).mock(Response(200, json=data.assign_priv_result_valid))
 
     grouper_stem.create_privilege_on_this("user3333", "stemAttrRead")
+    grouper_stem.create_privileges_on_this(["user3333"], ["stemAttrRead"])
 
 
 @respx.mock
@@ -25,6 +26,7 @@ def test_delete_privilege(grouper_stem: Stem):
     ).mock(return_value=Response(200, json=data.assign_priv_result_valid))
 
     grouper_stem.delete_privilege_on_this("user3333", "stemAttrRead")
+    grouper_stem.delete_privileges_on_this(["user3333"], ["stemAttrRead"])
 
 
 @respx.mock
