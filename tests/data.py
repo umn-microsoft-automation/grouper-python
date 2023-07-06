@@ -320,27 +320,27 @@ get_groups_for_subject_no_memberships = {
 }
 
 create_priv_group_request = {
-    "WsRestAssignGrouperPrivilegesLiteRequest": {
+    "WsRestAssignGrouperPrivilegesRequest": {
         "allowed": "T",
-        "privilegeName": "update",
-        "subjectIdentifier": "user3333",
-        "groupName": "test:GROUP1",
+        "privilegeNames": ["update"],
+        "wsSubjectLookups": [{"subjectIdentifier": "user3333"}],
+        "wsGroupLookup": {"groupName": "test:GROUP1"},
         "privilegeType": "access",
     }
 }
 
 delete_priv_group_request = {
-    "WsRestAssignGrouperPrivilegesLiteRequest": {
+    "WsRestAssignGrouperPrivilegesRequest": {
         "allowed": "F",
-        "privilegeName": "update",
-        "subjectIdentifier": "user3333",
-        "groupName": "test:GROUP1",
+        "privilegeNames": ["update"],
+        "wsSubjectLookups": [{"subjectIdentifier": "user3333"}],
+        "wsGroupLookup": {"groupName": "test:GROUP1"},
         "privilegeType": "access",
     }
 }
 
 assign_priv_result_valid = {
-    "WsAssignGrouperPrivilegesLiteResult": {"resultMetadata": {"success": "T"}}
+    "WsAssignGrouperPrivilegesResults": {"resultMetadata": {"success": "T"}}
 }
 
 add_member_result_valid = {
@@ -469,21 +469,21 @@ delete_groups_group_not_found = {
 }
 
 create_priv_stem_request = {
-    "WsRestAssignGrouperPrivilegesLiteRequest": {
+    "WsRestAssignGrouperPrivilegesRequest": {
         "allowed": "T",
-        "privilegeName": "stemAttrRead",
-        "subjectIdentifier": "user3333",
-        "stemName": "test:child",
+        "privilegeNames": ["stemAttrRead"],
+        "wsSubjectLookups": [{"subjectIdentifier": "user3333"}],
+        "wsStemLookup": {"stemName": "test:child"},
         "privilegeType": "naming",
     }
 }
 
 delete_priv_stem_request = {
-    "WsRestAssignGrouperPrivilegesLiteRequest": {
+    "WsRestAssignGrouperPrivilegesRequest": {
         "allowed": "F",
-        "privilegeName": "stemAttrRead",
-        "subjectIdentifier": "user3333",
-        "stemName": "test:child",
+        "privilegeNames": ["stemAttrRead"],
+        "wsSubjectLookups": [{"subjectIdentifier": "user3333"}],
+        "wsStemLookup": {"stemName": "test:child"},
         "privilegeType": "naming",
     }
 }
@@ -624,5 +624,137 @@ get_priv_result_group_not_found = {
 get_priv_result_stem_not_found = {
     "WsGetGrouperPrivilegesLiteResult": {
         "resultMetadata": {"success": "F", "resultCode": "STEM_NOT_FOUND"}
+    }
+}
+
+get_priv_for_group_result_none_found = {
+    "WsGetGrouperPrivilegesLiteResult": {"resultMetadata": {"success": "T"}}
+}
+
+get_attribute_assignment_result_no_assignments = {
+    "WsGetAttributeAssignmentsResults": {
+        "resultMetadata": {"success": "T"},
+    }
+}
+
+attribute_def = {
+    "attributeDefType": "attr",
+    "assignToAttributeDef": "F",
+    "assignToStemAssignment": "F",
+    "extension": "prov_to_def",
+    "assignToMemberAssignment": "F",
+    "assignToEffectiveMembership": "F",
+    "uuid": "24b93ca5c9234d1ab8da393afcc24c60",
+    "assignToImmediateMembershipAssignment": "F",
+    "assignToEffectiveMembershipAssignment": "F",
+    "assignToStem": "F",
+    "assignToGroupAssignment": "F",
+    "assignToMember": "F",
+    "multiAssignable": "F",
+    "valueType": "string",
+    "name": "etc:attr_def",
+    "assignToAttributeDefAssignment": "F",
+    "idIndex": "1000017",
+    "multiValued": "F",
+    "assignToGroup": "F",
+    "assignToImmediateMembership": "F",
+}
+
+attribute_def_name = {
+    "attributeDefId": "24b93ca5c9234d1ab8da393afcc24c60",
+    "displayExtension": "attr",
+    "extension": "attr",
+    "displayName": "attr",
+    "name": "etc:attr",
+    "attributeDefName": "etc:attr_def",
+    "idIndex": "1000076",
+    "uuid": "04d2177a412648b7a084f72f503bba4d",
+}
+
+attribute_assignment_group = {
+    "attributeAssignDelegatable": "FALSE",
+    "disallowed": "F",
+    "createdOn": "2023/06/12 09:53:52.253",
+    "enabled": "T",
+    "attributeAssignType": "group",
+    "attributeDefId": "24b93ca5c9234d1ab8da393afcc24c60",
+    "lastUpdated": "2023/06/12 09:53:52.253",
+    "attributeAssignActionId": "ae72ff8bf5414933a9bf7fb6fdf04a28",
+    "ownerGroupName": "test:GROUP1",
+    "id": "48e69cfa6b2340b5907662a3b5e0d330",
+    "wsAttributeAssignValues": [
+        {"id": "3017a079b5cc48e2a0126f8ba6f303d4", "valueSystem": "value"}
+    ],
+    "ownerGroupId": "1ab0482715c74f51bc32822a70bf8f77",
+    "attributeDefName": "etc:provision_to_def",
+    "attributeDefNameName": "etc:provision_to",
+    "attributeAssignActionName": "assign",
+    "attributeDefNameId": "04d2177a412648b7a084f72f503bba4d",
+    "attributeAssignActionType": "immediate",
+}
+
+attribute_assignment_stem = {
+    "attributeAssignDelegatable": "FALSE",
+    "disallowed": "F",
+    "createdOn": "2023/06/12 09:53:52.253",
+    "enabled": "T",
+    "attributeAssignType": "stem",
+    "attributeDefId": "24b93ca5c9234d1ab8da393afcc24c60",
+    "lastUpdated": "2023/06/12 09:53:52.253",
+    "attributeAssignActionId": "ae72ff8bf5414933a9bf7fb6fdf04a28",
+    "ownerStemName": "test:child",
+    "id": "48e69cfa6b2340b5907662a3b5e0d330",
+    "wsAttributeAssignValues": [
+        {"id": "3017a079b5cc48e2a0126f8ba6f303d4", "valueSystem": "value"}
+    ],
+    "ownerStemId": "e2c91c056fb746cca551d6887c722215",
+    "attributeDefName": "etc:provision_to_def",
+    "attributeDefNameName": "etc:provision_to",
+    "attributeAssignActionName": "assign",
+    "attributeDefNameId": "04d2177a412648b7a084f72f503bba4d",
+    "attributeAssignActionType": "immediate",
+}
+
+get_attribute_assignment_result_group = {
+    "WsGetAttributeAssignmentsResults": {
+        "resultMetadata": {"success": "T"},
+        "wsAttributeAssigns": [attribute_assignment_group],
+        "wsAttributeDefs": [attribute_def],
+        "wsAttributeDefNames": [attribute_def_name],
+        "wsGroups": [grouper_group_result1],
+    }
+}
+
+assign_attribute_result_group = {
+    "WsAssignAttributesResults": {
+        "resultMetadata": {"success": "T"},
+        "wsAttributeDefs": [attribute_def],
+        "wsAttributeDefNames": [attribute_def_name],
+        "wsGroups": [grouper_group_result1],
+        "wsAttributeAssignResults": [
+            {"wsAttributeAssigns": [attribute_assignment_group]}
+        ],
+    }
+}
+
+get_attribute_assignment_result_stem = {
+    "WsGetAttributeAssignmentsResults": {
+        "resultMetadata": {"success": "T"},
+        "wsAttributeAssigns": [attribute_assignment_stem],
+        "wsAttributeDefs": [attribute_def],
+        "wsAttributeDefNames": [attribute_def_name],
+        "wsStems": [grouper_stem_1],
+    }
+}
+
+assign_attribute_result_stem = {
+    "WsAssignAttributesResults": {
+        "resultMetadata": {"success": "T"},
+        "wsAttributeDefs": [attribute_def],
+        "wsAttributeDefNames": [attribute_def_name],
+        "wsStems": [grouper_stem_1],
+        "wsAttributeAssignResults": [
+            {"wsAttributeAssigns": [attribute_assignment_stem]}
+        ],
     }
 }

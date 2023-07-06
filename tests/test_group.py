@@ -133,6 +133,7 @@ def test_create_privilege(grouper_group: Group):
     ).mock(Response(200, json=data.assign_priv_result_valid))
 
     grouper_group.create_privilege_on_this("user3333", "update")
+    grouper_group.create_privileges_on_this(["user3333"], ["update"])
 
 
 @respx.mock
@@ -144,6 +145,7 @@ def test_delete_privilege(grouper_group: Group):
     ).mock(return_value=Response(200, json=data.assign_priv_result_valid))
 
     grouper_group.delete_privilege_on_this("user3333", "update")
+    grouper_group.delete_privileges_on_this(["user3333"], ["update"])
 
 
 @respx.mock
@@ -154,7 +156,7 @@ def test_get_privilege(grouper_group: Group):
         json=data.get_priv_for_group_request,
     ).mock(return_value=Response(200, json=data.get_priv_for_group_result))
 
-    privs = grouper_group.get_privilege_on_this()
+    privs = grouper_group.get_privileges_on_this()
 
     assert len(privs) == 1
 

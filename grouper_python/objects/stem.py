@@ -7,10 +7,12 @@ if TYPE_CHECKING:  # pragma: no cover
     from .subject import Subject
     from .group import Group
     from .privilege import Privilege
+    from .attribute import AttributeAssignment
 
-from ..privilege import assign_privilege, get_privileges
+from ..privilege import assign_privileges, get_privileges
 from ..stem import create_stems, get_stems_by_parent, delete_stems
 from ..group import create_groups, get_groups_by_parent
+from ..attribute import assign_attribute, get_attribute_assignments
 from .client import GrouperClient
 from dataclasses import dataclass
 from .base import GrouperEntity
@@ -63,11 +65,11 @@ class Stem(GrouperEntity):
         :param act_as_subject: Optional subject to act as, defaults to None
         :type act_as_subject: Subject | None, optional
         """
-        assign_privilege(
-            target=self.name,
+        assign_privileges(
+            target_name=self.name,
             target_type="stem",
-            privilege_name=privilege_name,
-            entity_identifier=entity_identifier,
+            privilege_names=[privilege_name],
+            entity_identifiers=[entity_identifier],
             allowed="T",
             client=self.client,
             act_as_subject=act_as_subject,
@@ -88,17 +90,69 @@ class Stem(GrouperEntity):
         :param act_as_subject: Optional subject to act as, defaults to None
         :type act_as_subject: Subject | None, optional
         """
-        assign_privilege(
-            target=self.name,
+        assign_privileges(
+            target_name=self.name,
             target_type="stem",
-            privilege_name=privilege_name,
-            entity_identifier=entity_identifier,
+            privilege_names=[privilege_name],
+            entity_identifiers=[entity_identifier],
             allowed="F",
             client=self.client,
             act_as_subject=act_as_subject,
         )
 
-    def get_privilege_on_this(
+    def create_privileges_on_this(
+        self,
+        entity_identifiers: list[str],
+        privilege_names: list[str],
+        act_as_subject: Subject | None = None,
+    ) -> None:
+        """Create privileges on this Stem.
+
+        :param entity_identifiers: List of identifiers of the entities
+        to receive the permissions
+        :type entity_identifiers: list[str]
+        :param privilege_names: List of names of the privileges to assign
+        :type privilege_names: list[str]
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        """
+        assign_privileges(
+            target_name=self.name,
+            target_type="stem",
+            privilege_names=privilege_names,
+            entity_identifiers=entity_identifiers,
+            allowed="T",
+            client=self.client,
+            act_as_subject=act_as_subject,
+        )
+
+    def delete_privileges_on_this(
+        self,
+        entity_identifiers: list[str],
+        privilege_names: list[str],
+        act_as_subject: Subject | None = None,
+    ) -> None:
+        """Delete privileges on this Stem.
+
+        :param entity_identifiers: List of identifiers of the entities
+        to receive the permissions
+        :type entity_identifiers: list[str]
+        :param privilege_names: List of names of the privileges to assign
+        :type privilege_names: list[str]
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        """
+        assign_privileges(
+            target_name=self.name,
+            target_type="stem",
+            privilege_names=privilege_names,
+            entity_identifiers=entity_identifiers,
+            allowed="F",
+            client=self.client,
+            act_as_subject=act_as_subject,
+        )
+
+    def get_privileges_on_this(
         self,
         subject_id: str | None = None,
         subject_identifier: str | None = None,
@@ -256,6 +310,72 @@ class Stem(GrouperEntity):
         """
         delete_stems(
             stem_names=[self.name], client=self.client, act_as_subject=act_as_subject
+        )
+
+    def assign_attribute_on_this(
+        self,
+        assign_operation: str,
+        attribute_def_name_name: str,
+        value: None | str | int | float = None,
+        assign_value_operation: str | None = None,
+        act_as_subject: Subject | None = None,
+    ) -> list[AttributeAssignment]:
+        """Assign an attribute on this stem.
+
+        :param assign_operation: Assignment operation, one of
+        "assign_attr", "add_attr", "remove_attr", "replace_attrs"
+        :type assign_operation: str
+        :param attribute_def_name_name: Attribute definition name name to assign
+        :type attribute_def_name_name: str
+        :param value: Value to assign, also requires assign_value_operation,
+        defaults to None
+        :type value: None | str | int | float, optional
+        :param assign_value_operation: Value assignment operation, one of
+        "assign_value", "add_value", "remove_value", "replace_values",
+        requires value to be specified as well, defaults to None
+        :type assign_value_operation: str | None, optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :return: A list of modified AttributeAssignments
+        :rtype: list[AttributeAssignment]
+        """
+        return assign_attribute(
+            attribute_assign_type="stem",
+            assign_operation=assign_operation,
+            client=self.client,
+            owner_name=self.name,
+            attribute_def_name_name=attribute_def_name_name,
+            value=value,
+            assign_value_operation=assign_value_operation,
+            act_as_subject=act_as_subject,
+        )
+
+    def get_attribute_assignments_on_this(
+        self,
+        attribute_def_name_names: list[str] = [],
+        attribute_def_names: list[str] = [],
+        act_as_subject: Subject | None = None,
+    ) -> list[AttributeAssignment]:
+        """Get attribute assignments on this stem.
+
+        :param attribute_def_name_names: List of names of attribute definition names
+        to retrieve assignments for, defaults to []
+        :type attribute_def_name_names: list[str], optional
+        :param attribute_def_names:  List of names of attribute defitions
+        to retrieve assignments for, defaults to []
+        :type attribute_def_names: list[str], optional
+        :param act_as_subject: Optional subject to act as, defaults to None
+        :type act_as_subject: Subject | None, optional
+        :return: A list of AttributeAssignments on this stem
+        :rtype: list[AttributeAssignment]
+        """
+        return get_attribute_assignments(
+            attribute_assign_type="stem",
+            client=self.client,
+            attribute_def_name_names=attribute_def_name_names,
+            attribute_def_names=attribute_def_names,
+            owner_names=[self.name],
+            act_as_subject=act_as_subject,
         )
 
 
